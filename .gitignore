@@ -57,3 +57,8 @@ replay_pid*
 
 # Claude Code - configuracao pessoal (nao versionar)
 .claude/settings.local.json
+
+# Variaveis de ambiente e segredos (nao versionar) - ver ADR-0014
+.env
+.env.*
+!.env.example

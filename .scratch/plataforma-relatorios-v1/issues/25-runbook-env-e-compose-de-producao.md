@@ -1,0 +1,16 @@
+# 25 — Runbook, `.env` e Compose de produção
+
+**What to build:** O sistema completo sobe de forma reproduzível em uma máquina nova, e o que não está no código está no runbook. Ticket de integração final: é aqui que se verifica que as partes construídas separadamente funcionam juntas.
+
+**Blocked by:** 12, 14, 16, 17, 18, 19, 20, 21, 22, 23 e 24 — todos os tickets folha.
+
+**Status:** ready-for-agent
+
+- [ ] Compose completo sobe PostgreSQL, MongoDB, Keycloak, API, Airflow, Collector, backend de métricas, Grafana e frontend
+- [ ] `.env` incluído no `.gitignore` e ausente do histórico do repositório
+- [ ] Runbook documenta a troca manual da senha inicial do ADMINISTRADOR, obrigatória por não haver rotação forçada (ADR-0014)
+- [ ] Runbook documenta que o timeout de leitura do ingress precisa ficar acima do pior caso de geração, sob pena de download truncado (ADR-0004)
+- [ ] Runbook documenta que a interface do Airflow não é exposta e como acessá-la pela rede interna (ADR-0009)
+- [ ] Runbook documenta o replica set do MongoDB, a rotina de backup e o teste de restauração, todos artesanais no Compose (ADR-0009)
+- [ ] Runbook lista os riscos aceitos vigentes com o ADR correspondente, para quem operar saber o que é deliberado
+- [ ] Verificação de ponta a ponta em ambiente limpo: Coleta agendada dispara, dados chegam, Relator gera e baixa, auditoria registra
