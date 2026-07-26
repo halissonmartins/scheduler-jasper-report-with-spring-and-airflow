@@ -11,7 +11,7 @@ Registrado porque o contexto sugeriria o contrário — os Produtos (POUPANCA, C
 
 ## Consequências (riscos aceitos)
 
-- Nada impede que uma linha de relatório com CPF apareça em log de aplicação, mensagem de exceção ou telemetria OTLP — e log normalmente não tem o mesmo controle de acesso que o banco.
+- Nada impede que uma linha de relatório com CPF apareça em log de aplicação, mensagem de exceção ou telemetria OTLP — e log normalmente não tem o mesmo controle de acesso que o banco. Parcialmente restringido depois pelo ADR-0017, que proíbe valor de linha em campo de log e atributo de span e torna isso verificável; mensagem de exceção continua sem barreira.
 - Não há decisão de criptografia em repouso para os volumes de MongoDB e PostgreSQL.
 - Cópia de dados de produção para ambientes não-produtivos permanece sem regra.
 - A exposição de LGPD decorrente é assumida pela organização, não mitigada pelo desenho.

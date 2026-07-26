@@ -22,7 +22,7 @@ Single-context: `CONTEXT.md` + `docs/adr/` na raiz. See `docs/agents/domain.md`.
 
 - **Idioma**: identificadores de domínio em pt-BR (`Relatorio`, `RoleDeRelatorio`, `StatusProcessamento`), andaime técnico em inglês (`Repository`, `Controller`, `Config`). Docs de domínio em pt-BR. Ver ADR-0012.
 - **Build**: agregador Maven único na raiz, versão compartilhada, tudo liberado junto. Ver ADR-0001. Use `./mvnw` quando existir.
-- **Stack**: Java 25 (Temurin), Spring Boot 4.1.x (mínimo Java 17, suporta até Java 26), Spring Batch 6.x, Jasper Reports, PostgreSQL, MongoDB, Keycloak, Airflow, OpenTelemetry Collector + Prometheus/Grafana, Angular. Sem Json Server — o cliente Angular é gerado do OpenAPI.
+- **Stack**: Java 25 (Temurin), Spring Boot 4.1.x (mínimo Java 17, suporta até Java 26), Spring Batch 6.x, Jasper Reports, PostgreSQL, MongoDB, Keycloak, Airflow, OpenTelemetry Collector + Prometheus/Grafana + Jaeger, Angular. Sem Json Server — o cliente Angular é gerado do OpenAPI.
 - **Testes**: Cucumber/Gherkin em todas as camadas, inclusive Coleta, contra Testcontainers; JUnit para TDD interno. Cenários de batch etiquetados e rodados em etapa própria de CI. Ver ADR-0013.
 
 ## Antes de "consertar" algo

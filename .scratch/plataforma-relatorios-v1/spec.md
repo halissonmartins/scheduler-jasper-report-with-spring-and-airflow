@@ -113,7 +113,7 @@ O Gerente administra as Roles de Relatório, vinculando Relatórios e Relatores 
 
 ### Módulos
 
-Agregador Maven único, versão compartilhada (ADR-0001). Reator: `common` → `processor-starter` → `processor-<produto>` (POUPANCA, CLIENTE, CONTACORRENTE, EMPRESTIMO, CONSORCIO) → `api`. Fora do reator: `frontend/` (Angular), `airflow/` (DAGs e módulo de geração), `deploy/` (Compose, realm do Keycloak, script `kcadm`, configuração do OTel Collector).
+Agregador Maven único, versão compartilhada (ADR-0001). Reator: `common` → `processor-starter` → `processor-<produto>` (POUPANCA, CLIENTE, CONTACORRENTE, EMPRESTIMO, CONSORCIO) → `api`. Fora do reator: `frontend/` (Angular), `airflow/` (DAGs e módulo de geração), `deploy/` (Compose, realm do Keycloak, script `kcadm`, configuração do OTel Collector com os pipelines de métricas e traces).
 
 `common` carrega os tipos de domínio compartilhados — `CodigoRelatorio` (com a validação do ADR-0015 encapsulada no próprio tipo, não espalhada em anotações de controller), `DataReferencia`, `StatusProcessamento`, `JanelaAgendamento`, `FormatoExportacao`. Não é depósito de utilitários.
 
@@ -167,6 +167,8 @@ DAGs geradas dinamicamente do Cadastro, uma por (Produto × Janela de Agendament
 ### Observabilidade (decidido na sessão)
 
 Processadores exportam métricas via Micrometer OTLP para um OpenTelemetry Collector sempre ativo, que alimenta Prometheus/Grafana — os containers de Coleta são efêmeros e não podem ser raspados. A API expõe métricas normalmente.
+
+O mesmo argumento da efemeridade vale para logs e traces (ADR-0017): log JSON estruturado com `traceId`/`spanId` no MDC via Micrometer Tracing, e um segundo pipeline no Collector levando spans ao Jaeger com storage Badger e TTL de 7 dias. Amostragem integral. `traceparent` W3C propagado do Angular para a API e do Airflow para dentro do container do processador; o `runId` vai como atributo de span, amarrando o correlator de negócio ao técnico. Atributos de span e campos de log carregam apenas identificadores de domínio — nunca valor de linha de Relatório.
 
 ### Frontend
 

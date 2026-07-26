@@ -10,5 +10,5 @@
 - [ ] A API expõe suas métricas de latência de geração, erros e recusas por limite
 - [ ] Dashboard mostra Execuções de Coleta por status, duração e contagem de linhas
 - [ ] Dashboard evidencia execuções em processado com alerta e em processado com erro
-- [ ] Nenhuma linha de dado de Relatório trafega em métrica, log ou telemetria
+- [ ] Nenhuma linha de dado de Relatório trafega em métrica ou telemetria — nomes e rótulos de métrica carregam só identificadores de domínio (a mesma restrição em log e span é verificada no ticket 27, ADR-0017)
 - [ ] Collector configurado no Compose junto com o backend de métricas e o Grafana
