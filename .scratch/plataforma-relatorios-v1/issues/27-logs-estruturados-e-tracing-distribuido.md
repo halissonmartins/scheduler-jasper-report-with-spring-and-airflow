@@ -7,8 +7,12 @@
 **Status:** ready-for-agent
 
 - [ ] API e processadores emitem log JSON estruturado com `traceId` e `spanId` no MDC (Micrometer Tracing)
-- [ ] Collector com dois pipelines: métricas para o Prometheus, traces para o Jaeger
+- [ ] Collector com três pipelines: métricas para o Prometheus, traces para o Jaeger, logs para o Loki
 - [ ] Jaeger no Compose com storage Badger em volume persistente e TTL de spans de 7 dias (ADR-0008)
+- [ ] Loki no Compose em modo monolítico, storage em filesystem, retenção de 7 dias habilitada no compactor
+- [ ] Log da Coleta continua consultável no Loki depois que o container do processador é encerrado — é o caso que motivou a agregação
+- [ ] Grafana com datasource do Loki e salto de log para trace pelo `traceId`, sem copiar identificador à mão
+- [ ] Jaeger, Grafana e Prometheus escutam apenas na rede interna, sem regra de ingress, ao lado do Airflow (ADR-0017)
 - [ ] Amostragem integral, sem descarte de traces
 - [ ] Frontend propaga `traceparent` W3C na chamada de geração; o trace resultante mostra a requisição do navegador e o trabalho na API no mesmo waterfall
 - [ ] Airflow injeta o contexto de trace no container do processador, e a Execução de Coleta aparece como trace único do lançamento à troca de ponteiro

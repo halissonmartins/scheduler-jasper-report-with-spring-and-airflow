@@ -168,7 +168,7 @@ DAGs geradas dinamicamente do Cadastro, uma por (Produto × Janela de Agendament
 
 Processadores exportam métricas via Micrometer OTLP para um OpenTelemetry Collector sempre ativo, que alimenta Prometheus/Grafana — os containers de Coleta são efêmeros e não podem ser raspados. A API expõe métricas normalmente.
 
-O mesmo argumento da efemeridade vale para logs e traces (ADR-0017): log JSON estruturado com `traceId`/`spanId` no MDC via Micrometer Tracing, e um segundo pipeline no Collector levando spans ao Jaeger com storage Badger e TTL de 7 dias. Amostragem integral. `traceparent` W3C propagado do Angular para a API e do Airflow para dentro do container do processador; o `runId` vai como atributo de span, amarrando o correlator de negócio ao técnico. Atributos de span e campos de log carregam apenas identificadores de domínio — nunca valor de linha de Relatório.
+O mesmo argumento da efemeridade vale para logs e traces (ADR-0017): log JSON estruturado com `traceId`/`spanId` no MDC via Micrometer Tracing, e mais dois pipelines no Collector — spans para o Jaeger (Badger, TTL de 7 dias) e logs para o Loki (monolítico, filesystem, retenção de 7 dias). Amostragem integral. Jaeger, Grafana e Prometheus escutam só na rede interna, ao lado do Airflow; Loki não tem UI própria e é lido pelo Grafana, que por isso entra na mesma fronteira. `traceparent` W3C propagado do Angular para a API e do Airflow para dentro do container do processador; o `runId` vai como atributo de span, amarrando o correlator de negócio ao técnico. Atributos de span e campos de log carregam apenas identificadores de domínio — nunca valor de linha de Relatório.
 
 ### Frontend
 
