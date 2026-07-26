@@ -66,12 +66,12 @@ O Gerente administra as Roles de Relatório, vinculando Relatórios e Relatores 
 
 ### Administrador
 
-33. Como Administrador, quero cadastrar um Produto com sua sigla, para que Relatórios possam ser vinculados a ele.
+33. Como Administrador, quero cadastrar um Produto com seu nome, para que Relatórios possam ser vinculados a ele.
 34. Como Administrador, quero remover um Produto, para retirar do sistema uma linha de negócio descontinuada.
 35. Como Administrador, quero ser impedido de remover um Produto que ainda tem Relatórios, para não deixar Relatórios órfãos.
 36. Como Administrador, quero cadastrar um Relatório informando Código do Relatório, nome, descrição, Tempo Estimado de Execução e Janela de Agendamento, para que ele passe a ser coletado.
-37. Como Administrador, quero que o Código do Relatório seja validado no formato sigla-9999, para não cadastrar códigos inconsistentes.
-38. Como Administrador, quero receber uma recusa quando a sigla do Código não corresponde a um Produto cadastrado, para que a hierarquia de armazenamento nunca contenha Produto inexistente.
+37. Como Administrador, quero que o Código do Relatório seja validado no formato nome-9999, para não cadastrar códigos inconsistentes.
+38. Como Administrador, quero receber uma recusa quando o nome do Código não corresponde a um Produto cadastrado, para que a hierarquia de armazenamento nunca contenha Produto inexistente.
 39. Como Administrador, quero escolher a Janela de Agendamento de uma lista fechada, para não errar uma expressão de agendamento.
 40. Como Administrador, quero que o Código do Relatório seja imutável após a criação, para que registros de auditoria antigos continuem verdadeiros.
 41. Como Administrador, quero ser impedido de reutilizar um Código de um Relatório excluído, para que a trilha de auditoria nunca aponte para o Relatório errado.
@@ -129,7 +129,7 @@ O starter publica um artefato `test-fixtures` com os passos Cucumber reutilizáv
 
 | Tabela | Conteúdo |
 |---|---|
-| `produto` | sigla (natural key), nome, descrição |
+| `produto` | nome (natural key), descrição |
 | `relatorio` | código (natural key), produto, nome, descrição, tempo estimado de execução, janela de agendamento, ativo |
 | `role_relatorio` | nome da role (igual à role do Keycloak), descrição, created_by, created_at |
 | `role_relatorio_relatorio` | vínculo N:N role ↔ relatório, com created_by, updated_by, created_at |
@@ -182,7 +182,7 @@ Um bom teste aqui exercita comportamento externo observável e nada mais. Nenhum
 
 Quatro seams, todos no ponto mais alto do seu runtime:
 
-1. **HTTP na API.** Cenários Cucumber contra a API real, com PostgreSQL, MongoDB e Keycloak em Testcontainers. Cobre catálogo filtrado por Role de Relatório, as recusas por permissão, o CRUD de Cadastros e suas validações (formato do Código, sigla inexistente, imutabilidade, proibição de reuso), a regra "GERENTE não cria GERENTE", a geração nos quatro formatos, a recusa por limite com contagem prévia, o nome do arquivo, e o registro de auditoria de cada download.
+1. **HTTP na API.** Cenários Cucumber contra a API real, com PostgreSQL, MongoDB e Keycloak em Testcontainers. Cobre catálogo filtrado por Role de Relatório, as recusas por permissão, o CRUD de Cadastros e suas validações (formato do Código, nome inexistente, imutabilidade, proibição de reuso), a regra "GERENTE não cria GERENTE", a geração nos quatro formatos, a recusa por limite com contagem prévia, o nome do arquivo, e o registro de auditoria de cada download.
 2. **Lançamento do job de Coleta.** Cenários Cucumber que semeiam um banco de origem em Testcontainer, executam a Coleta pelo starter e verificam as linhas no MongoDB, a troca de ponteiro, o Status de Processamento e a contagem. Cobre explicitamente: repetição de execução não duplica dados; execução que falha no meio não altera o ponteiro nem o que está publicado; execução acima do Tempo Estimado de Execução resulta em processado com alerta. Passos reutilizáveis vindos do `test-fixtures` do starter.
 3. **Geração de DAGs (pytest).** Sobre o módulo Python que lê o Cadastro: uma DAG por (Produto × Janela), e — o caso que mais importa — o fallback de cache quando o PostgreSQL está indisponível, que é código que só executa no dia do incidente.
 4. **E2E de navegador (Playwright).** Login no Keycloak, catálogo, geração e download real. É o único seam que valida de fato o teto de memória do blob do ADR-0004: um download próximo ao limite de CSV precisa completar no navegador, não apenas no servidor.

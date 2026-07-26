@@ -51,7 +51,7 @@ Pendentes de definição:
 - Ciclo de Vida dos Status (em processamento, processado com sucesso, processado com erro, processado com alerta)
 - Usar ou não um banco de dados PostgreSQL
 - Gravação dos metadados de processamento (data hora início, data hora fim, status)
-- Gravação dos metadados do relatório: "tempo estimado de execução" em segundos, sigla do produto, nome e descrição.
+- Gravação dos metadados do relatório: "tempo estimado de execução" em segundos, nome do produto, nome e descrição.
 - Definição completa do Tech Stack
 - UI de navegação para visualizar os relatórios disponíveis por dd/MM/yyyy
 

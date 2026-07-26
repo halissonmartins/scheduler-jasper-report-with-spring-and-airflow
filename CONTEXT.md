@@ -13,7 +13,7 @@ Linha de negócio proprietária de um sistema de origem e dos Relatórios que de
 _Avoid_: sistema, módulo, domínio
 
 **Código do Relatório**:
-Identificador de um Relatório, formado pela sigla do Produto (até 20 caracteres) seguida de hífen e quatro dígitos — ex.: POUPANCA-0001. Imutável após a criação e nunca reaproveitado.
+Identificador de um Relatório, formado pelo nome do Produto (até 20 caracteres) seguida de hífen e quatro dígitos — ex.: POUPANCA-0001. Imutável após a criação e nunca reaproveitado.
 _Avoid_: id do relatório, chave, nome técnico
 
 **Cadastro**:
