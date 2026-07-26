@@ -11,7 +11,10 @@
 - [ ] Pedido acima do limite do formato é recusado pela contagem prévia, antes de iniciar a renderização
 - [ ] O limite de XLSX respeita também o teto físico de 1.048.576 linhas por planilha
 - [ ] Formato inválido ou não suportado é recusado com mensagem clara
-- [ ] Cada Relatório tem seu `.jrxml` versionado no repositório, associado pelo Código do Relatório (ADR-0022)
+- [ ] Cada Relatório tem seu `.jrxml` em `api/src/main/resources/relatorios/<PRODUTO>/<CODIGO>.jrxml`, resolvido pelo Código do Relatório (ADR-0022)
+- [ ] O `.jrxml` é compilado para `.jasper` no build do módulo `api`; template inválido quebra o build, não a primeira Geração (ADR-0023)
+- [ ] Subrelatórios ficam em `sub/` e imagens em `img/`, referenciados pelo caminho de classpath completo — nunca por `SUBREPORT_DIR` ou caminho de disco (ADR-0023)
+- [ ] Templates são carregados uma vez e mantidos em cache, não recarregados a cada Geração (ADR-0023)
 - [ ] Relatório cadastrado e coletando, mas ainda sem template, é recusado na Geração com mensagem explícita — nunca arquivo vazio
 - [ ] Catálogo ou consulta permite ao ADMINISTRADOR ver quais Relatórios estão nessa situação, para que a janela sem template seja visível
 - [ ] Cenários Cucumber cobrindo os três formatos e a recusa por limite em cada um

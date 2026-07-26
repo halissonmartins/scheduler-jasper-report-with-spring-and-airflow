@@ -178,9 +178,9 @@ O mesmo argumento da efemeridade vale para logs e traces (ADR-0017): log JSON es
 
 Flyway é dono do esquema do PostgreSQL, incluindo as tabelas do Spring Batch; JPA sobe com `ddl-auto=validate`. Traefik termina TLS e concentra o timeout de leitura do ADR-0004; só frontend e API têm rota pública. Mailpit recebe os e-mails do Keycloak em todos os ambientes — com a consequência de que produção não entrega e-mail, e portanto não tem autocadastro nem recuperação de senha até um relay real existir. CI é GitHub Actions em runners x86, contra produção ARM64. springdoc-openapi produz o contrato e o openapi-generator gera o cliente Angular. Sistemas de origem são PostgreSQL somente leitura. Versões de imagem em tags `maior.menor` no `.env`.
 
-### Geração por formato (ADR-0021, ADR-0022)
+### Geração por formato (ADR-0021, ADR-0022, ADR-0023)
 
-CSV é escrito em streaming do cursor do MongoDB direto no response, sem Jasper — é o que sustenta seu limite ser vinte vezes o do PDF. PDF, XLSX e DOCX passam pelo Jasper, cada Relatório com seu próprio `.jrxml` versionado e associado pelo Código do Relatório; Relatório sem template é recusado na Geração com mensagem explícita.
+CSV é escrito em streaming do cursor do MongoDB direto no response, sem Jasper — é o que sustenta seu limite ser vinte vezes o do PDF. PDF, XLSX e DOCX passam pelo Jasper, cada Relatório com seu próprio `.jrxml` em `api/src/main/resources/relatorios/<PRODUTO>/<CODIGO>.jrxml`, resolvido pelo Código do Relatório; Relatório sem template é recusado na Geração com mensagem explícita. Os templates são compilados para `.jasper` no build do módulo `api` e carregados só do classpath — subrelatórios em `sub/`, imagens em `img/`, ambos referenciados pelo caminho de classpath completo (ADR-0023).
 
 ### Frontend
 

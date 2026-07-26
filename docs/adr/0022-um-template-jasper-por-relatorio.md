@@ -2,6 +2,8 @@
 
 Cada Relatório tem o seu próprio `.jrxml`, versionado no repositório e associado ao Relatório pelo Código do Relatório. Não há template genérico: um Relatório sem template não pode ser gerado em PDF, XLSX ou DOCX, e a API recusa a Geração com mensagem explícita em vez de produzir arquivo vazio. CSV não usa template (ADR-0021).
 
+O template vive em `api/src/main/resources/relatorios/<PRODUTO>/<CODIGO>.jrxml`. No módulo `api` porque a Geração é responsabilidade dele e de mais ninguém — o processador contribui `DataSource`, consulta e mapeamento de linha, e nada mais (ADR-0011). O nível de Produto é redundante como chave, já que o Código o contém (ADR-0015), mas espelha a hierarquia de armazenamento (Data de Referência → Produto → Código) e evita um diretório com centenas de arquivos irmãos. A resolução em runtime é pelo Código, derivando o Produto do seu prefixo. Como o template é compilado e como subrelatórios e imagens são resolvidos: ADR-0023.
+
 Escolhido pelo controle de layout: cabeçalho, formatação por coluna e apresentação por Relatório, que um template tabular genérico não entrega.
 
 ## Consequências
