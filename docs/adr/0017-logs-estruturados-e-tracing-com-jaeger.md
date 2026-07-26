@@ -1,6 +1,6 @@
 # Logs estruturados e tracing distribuído com Jaeger e Loki
 
-Todo log de API e processador é JSON estruturado com `traceId` e `spanId` no MDC, produzidos por Micrometer Tracing. O OpenTelemetry Collector que já existe passa a ter **três** pipelines: métricas para o Prometheus, traces para o **Jaeger** (armazenamento Badger local, TTL de 7 dias) e logs para o **Loki** (modo monolítico, storage em filesystem, retenção de 7 dias pelo compactor). O contexto W3C `traceparent` é propagado do Angular para a API e do Airflow para dentro do container do processador.
+Todo log de API e processador é JSON estruturado com `traceId` e `spanId` no MDC, produzidos por Micrometer Tracing. O OpenTelemetry Collector que já existe passa a ter **três** pipelines: métricas para o Prometheus, traces para o **Jaeger** (armazenamento Badger local) e logs para o **Loki** (modo monolítico, storage em filesystem, retenção pelo compactor). As duas janelas são parâmetros próprios, com padrão de 14 dias (ADR-0018). O contexto W3C `traceparent` é propagado do Angular para a API e do Airflow para dentro do container do processador.
 
 Loki entra porque sem ele a decisão de log estruturado não se completa: JSON bonito no stdout de um container que o `DockerOperator` encerra morre com o container — exatamente a efemeridade que justificou o Collector para métricas. O par Loki + Grafana também é o que liga log e trace pelo `traceId` em um clique, que é o valor real de ter os dois.
 
@@ -25,6 +25,6 @@ Registrado porque o desenho anterior tinha uma assimetria não intencional: reco
 - Mais **dois** containers com estado no Compose (ADR-0009): Jaeger e Loki entram no runbook, na rotina de backup e no teste de restauração, todos artesanais.
 - **Segunda exceção deliberada ao ADR-0010**, depois do Airflow. A justificativa é diferente da daquele: o Airflow ficou interno por ser execução remota de código; o plano de telemetria fica interno por agregar dado de todos os Produtos sem qualquer fronteira de Role de Relatório. Sob o ADR-0016 — que aceita CPF em mensagem de exceção — uma UI de log pública seria o caminho mais curto até dado pessoal.
 - Operação passa a depender de rede interna ou túnel para ver dashboards, logs e traces. É custo de conveniência real, todo dia, não só no incidente.
-- Traces são diagnóstico, não trilha de auditoria. Expiram em 7 dias junto com os dados (ADR-0008); a `auditoria_geracao` sobrevive muito além disso e continua sendo a fonte para pedidos de auditoria.
+- Traces são diagnóstico, não trilha de auditoria. Têm relógio próprio, deliberadamente mais longo que o dos dados, porque incidente se investiga depois do fato (ADR-0018); a `auditoria_geracao` sobrevive muito além dos dois e continua sendo a fonte para pedidos de auditoria.
 - Badger é nó único, sem HA: perder o volume do Jaeger perde o histórico de traces. Aceitável — não é dado de negócio.
 - O `runId` continua sendo o correlator de **negócio** da Execução de Coleta; o `traceId` é o correlator **técnico**. São identificadores distintos com ciclos de vida distintos, e o `runId` deve aparecer como atributo de span para amarrar um ao outro.

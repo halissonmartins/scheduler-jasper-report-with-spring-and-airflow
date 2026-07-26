@@ -9,7 +9,7 @@
 - [ ] Login e logout via Keycloak com Authorization Code + PKCE
 - [ ] Cliente da API gerado a partir do OpenAPI, sem fixtures mantidas à mão (ADR já decidido na sessão; Json Server descartado)
 - [ ] Catálogo mostra apenas os Relatórios das Roles do usuário, agrupados por Produto
-- [ ] Seletor de data oferece apenas Datas de Referência disponíveis, exibidas em dd/MM/yyyy, no máximo sete
+- [ ] Seletor de data oferece apenas as Datas de Referência que a API devolve, exibidas em dd/MM/yyyy — a quantidade vem da resposta, sem limite escrito à mão no frontend (ADR-0018)
 - [ ] Seleção de Formato de Exportação entre os quatro formatos
 - [ ] Download por fetch com header de autorização, materializando o arquivo no navegador (ADR-0004)
 - [ ] Indicação visível de progresso enquanto a geração ocorre

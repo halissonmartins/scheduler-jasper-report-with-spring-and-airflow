@@ -2,7 +2,7 @@
 
 Status: ready-for-agent
 Origem: sessão de grilling sobre `docs/descricao-inicial.txt` (2026-07-25)
-Decisões vinculantes: `docs/adr/0001` a `docs/adr/0016` · Glossário: `CONTEXT.md`
+Decisões vinculantes: `docs/adr/0001` a `docs/adr/0018` · Glossário: `CONTEXT.md`
 
 Onde este spec divergir da descrição inicial, valem os ADRs. A linha 32 da descrição está revogada (ADR-0007).
 
@@ -18,7 +18,7 @@ E não existe conceito de permissão por relatório: ter acesso ao banco é ter 
 
 Um sistema em duas metades.
 
-A **Coleta** roda sozinha, agendada por Janela de Agendamento, lendo cada Produto no seu próprio sistema de origem em horário controlado e guardando os dados por 7 dias. Ninguém escreve consulta manual, e a carga no sistema de origem acontece quando a operação escolheu.
+A **Coleta** roda sozinha, agendada por Janela de Agendamento, lendo cada Produto no seu próprio sistema de origem em horário controlado e guardando os dados pela janela de retenção configurada, com padrão de 7 dias. Ninguém escreve consulta manual, e a carga no sistema de origem acontece quando a operação escolheu.
 
 A **Geração** é sob demanda: o Relator entra, vê quais Relatórios ele pode gerar e para quais datas, escolhe o Formato de Exportação (PDF, CSV, XLSX ou DOCX) e baixa o arquivo na hora. O que ele vê é exatamente o que suas Roles de Relatório permitem — nem mais, nem menos. Todo download fica registrado: quem, o quê, de qual data, em qual formato, quantas linhas, quanto tempo levou.
 
@@ -93,7 +93,7 @@ O Gerente administra as Roles de Relatório, vinculando Relatórios e Relatores 
 54. Como Operação, quero repetir uma Execução de Coleta que falhou, para recuperar o dia sem intervenção manual no banco.
 55. Como Operação, quero que uma Execução de Coleta repetida não duplique nem corrompa os dados já publicados, para repetir sem medo.
 56. Como Operação, quero que uma Execução de Coleta que falhe no meio não afete o que os Relatores estão baixando, para que a falha seja invisível para o usuário.
-57. Como Operação, quero que os dados coletados sejam apagados automaticamente após 7 dias, para não administrar crescimento infinito de disco.
+57. Como Operação, quero que os dados coletados sejam apagados automaticamente ao fim da janela de retenção, e quero poder ajustar essa janela dentro de um teto, para não administrar crescimento infinito de disco.
 58. Como Operação, quero um dashboard com execuções, durações, alertas e falhas, para acompanhar a saúde do pipeline em um lugar.
 59. Como Operação, quero métricas da API (latência de geração, erros, recusas por limite), para saber como o sistema se comporta sob uso real.
 60. Como Operação, quero que o agendamento continue funcionando quando o PostgreSQL fica momentaneamente indisponível, para que uma instabilidade curta não pare as coletas do dia.
@@ -106,7 +106,7 @@ O Gerente administra as Roles de Relatório, vinculando Relatórios e Relatores 
 
 65. Como Auditor, quero consultar quem gerou e baixou cada Relatório, para responder pedidos de auditoria de acesso.
 66. Como Auditor, quero ver a Data de Referência, o Formato de Exportação e a contagem de linhas de cada download, para saber exatamente que dado saiu.
-67. Como Auditor, quero que os registros de auditoria sobrevivam muito além dos 7 dias dos dados, para investigar acessos antigos.
+67. Como Auditor, quero que os registros de auditoria sobrevivam muito além da retenção dos dados, para investigar acessos antigos.
 68. Como Auditor, quero ver o desfecho de cada tentativa de geração, inclusive as recusadas por falta de permissão, para detectar tentativa de acesso indevido.
 
 ## Implementation Decisions
@@ -144,7 +144,7 @@ Colunas `created_by`/`updated_by`/`created_at` nas tabelas de vínculo são a mi
 
 Uma coleção de linhas de Relatório. Campos de controle fixos: Data de Referência, produto, código do relatório, runId, sequência, timestamp de criação. Os dados do Relatório vivem em um subdocumento sem esquema fixo — é a razão da escolha do MongoDB (ADR-0002).
 
-Índices: composto em (Data de Referência, produto, código, sequência) para leitura ordenada e determinística e para a contagem prévia; índice TTL de 7 dias sobre o timestamp de criação (ADR-0008).
+Índices: composto em (Data de Referência, produto, código, sequência) para leitura ordenada e determinística e para a contagem prévia; índice TTL sobre o timestamp de criação, com a janela vinda de parâmetro e reconciliada por `collMod` na subida (ADR-0008, ADR-0018).
 
 ### Contratos da API
 
@@ -168,11 +168,11 @@ DAGs geradas dinamicamente do Cadastro, uma por (Produto × Janela de Agendament
 
 Processadores exportam métricas via Micrometer OTLP para um OpenTelemetry Collector sempre ativo, que alimenta Prometheus/Grafana — os containers de Coleta são efêmeros e não podem ser raspados. A API expõe métricas normalmente.
 
-O mesmo argumento da efemeridade vale para logs e traces (ADR-0017): log JSON estruturado com `traceId`/`spanId` no MDC via Micrometer Tracing, e mais dois pipelines no Collector — spans para o Jaeger (Badger, TTL de 7 dias) e logs para o Loki (monolítico, filesystem, retenção de 7 dias). Amostragem integral. Jaeger, Grafana e Prometheus escutam só na rede interna, ao lado do Airflow; Loki não tem UI própria e é lido pelo Grafana, que por isso entra na mesma fronteira. `traceparent` W3C propagado do Angular para a API e do Airflow para dentro do container do processador; o `runId` vai como atributo de span, amarrando o correlator de negócio ao técnico. Atributos de span e campos de log carregam apenas identificadores de domínio — nunca valor de linha de Relatório.
+O mesmo argumento da efemeridade vale para logs e traces (ADR-0017): log JSON estruturado com `traceId`/`spanId` no MDC via Micrometer Tracing, e mais dois pipelines no Collector — spans para o Jaeger (Badger) e logs para o Loki (monolítico, filesystem), cada um com sua própria janela de retenção, padrão 14 dias (ADR-0018). Amostragem integral. Jaeger, Grafana e Prometheus escutam só na rede interna, ao lado do Airflow; Loki não tem UI própria e é lido pelo Grafana, que por isso entra na mesma fronteira. `traceparent` W3C propagado do Angular para a API e do Airflow para dentro do container do processador; o `runId` vai como atributo de span, amarrando o correlator de negócio ao técnico. Atributos de span e campos de log carregam apenas identificadores de domínio — nunca valor de linha de Relatório.
 
 ### Frontend
 
-Angular com cliente gerado do OpenAPI, autenticação Authorization Code + PKCE contra o Keycloak. Download por `fetch()` + blob com header `Authorization` (ADR-0004) — os limites de linhas existem em função desse teto de memória. Seletor de data limitado às Datas de Referência disponíveis, no máximo sete (ADR-0008).
+Angular com cliente gerado do OpenAPI, autenticação Authorization Code + PKCE contra o Keycloak. Download por `fetch()` + blob com header `Authorization` (ADR-0004) — os limites de linhas existem em função desse teto de memória. Seletor de data limitado às Datas de Referência que a API devolve, sem limite escrito à mão no frontend (ADR-0008, ADR-0018).
 
 ### Idioma
 
@@ -195,7 +195,7 @@ Os valores iniciais dos limites de linhas são conservadores e provisórios: o b
 
 ## Out of Scope
 
-- **Relatórios com mais de 7 dias.** Sem artefato persistido e com TTL de 7 dias, o sistema não produz histórico. Fechamento de mês, trimestre e pedido de auditoria retroativo estão fora (ADR-0008).
+- **Relatórios mais antigos que a janela de retenção.** Sem artefato persistido, o sistema não produz histórico — e aumentar a janela não muda isso: fechamento de mês, trimestre e pedido de auditoria retroativo são agregação entre dias, que não existe no desenho (ADR-0008, ADR-0018).
 - **Extração completa dos maiores Relatórios.** O teto de memória do navegador limita todos os formatos, inclusive CSV, à casa das centenas de milhares de linhas (ADR-0004).
 - **Geração assíncrona**, endpoint de polling, artefato reaproveitável e retomada de download (ADR-0004).
 - **Bulkhead de concorrência.** Uma geração grande pode causar OOM na API e derrubar requisições em voo de outros usuários (ADR-0004).

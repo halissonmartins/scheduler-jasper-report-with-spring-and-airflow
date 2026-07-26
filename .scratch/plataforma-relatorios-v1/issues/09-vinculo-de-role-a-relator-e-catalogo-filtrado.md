@@ -2,7 +2,7 @@
 
 **What to build:** O acesso do Relator passa a existir de verdade: o GERENTE vincula Roles de Relatório a Relatores, e o Relator vê exatamente os Relatórios que suas roles alcançam — nem um a mais. Revogar vale na hora.
 
-**Blocked by:** 07 — Retenção de 7 dias e Datas de Referência disponíveis; 08 — Roles de Relatório e vínculo com Relatórios.
+**Blocked by:** 07 — Retenção parametrizável e Datas de Referência disponíveis; 08 — Roles de Relatório e vínculo com Relatórios.
 
 **Status:** ready-for-agent
 
