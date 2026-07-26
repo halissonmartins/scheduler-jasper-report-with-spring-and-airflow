@@ -2,7 +2,7 @@
 
 **What to build:** O sistema completo sobe de forma reproduzível em uma máquina nova, e o que não está no código está no runbook. Ticket de integração final: é aqui que se verifica que as partes construídas separadamente funcionam juntas.
 
-**Blocked by:** 12, 14, 16, 17, 18, 19, 20, 21, 22, 23 e 24 — todos os tickets folha.
+**Blocked by:** 12, 14, 17, 18, 19, 20, 21, 22, 24 e 26 — todos os tickets folha (16 e 23 chegam pelo 26).
 
 **Status:** ready-for-agent
 
