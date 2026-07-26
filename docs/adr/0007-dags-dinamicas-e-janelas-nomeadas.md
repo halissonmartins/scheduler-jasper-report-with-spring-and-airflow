@@ -1,6 +1,6 @@
 # DAGs dinâmicas geradas do Cadastro, com Janelas de Agendamento nomeadas
 
-As DAGs do Airflow são geradas dinamicamente a partir do Cadastro no PostgreSQL, uma DAG por (Produto × Janela de Agendamento). A Janela é escolhida de um vocabulário fechado (ex.: DIARIO_MADRUGADA, HORARIO_COMERCIAL_HORARIO, SEMANAL_DOMINGO) — não existe cron livre no Cadastro.
+As DAGs do Airflow são geradas dinamicamente a partir do Cadastro no PostgreSQL, uma DAG por (Produto × Janela de Agendamento). A Janela é escolhida de um vocabulário fechado (ex.: DIARIO_MADRUGADA, HORARIO_COMERCIAL_HORARIO, SEMANAL_SABADO, SEMANAL_DOMINGO) — não existe cron livre no Cadastro.
 
 Cadastrar um novo Relatório em um Produto existente não exige deploy. Cadastrar um novo Produto exige, inevitavelmente, um novo módulo Maven e uma nova imagem. Janelas nomeadas existem porque no Airflow o agendamento é propriedade da DAG, não da tarefa: cron por Relatório significaria uma DAG por Relatório.
 
