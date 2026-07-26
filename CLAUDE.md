@@ -27,4 +27,4 @@ Single-context: `CONTEXT.md` + `docs/adr/` na raiz. See `docs/agents/domain.md`.
 
 ## Antes de "consertar" algo
 
-ADR-0004, ADR-0009, ADR-0010, ADR-0014 e ADR-0016 registram **riscos aceitos**, não designs ideais — geração síncrona sem bulkhead, Compose em VMs, exposição pública sem MFA, senha inicial do ADMINISTRADOR sem rotação, ausência de classificação de dados. Foram debatidos e escolhidos deliberadamente. Se for propor mudança, cite o ADR e o que mudou no contexto.
+ADR-0004, ADR-0009, ADR-0010, ADR-0014, ADR-0016 e ADR-0019 registram **riscos aceitos**, não designs ideais — geração síncrona sem bulkhead, Compose em VMs, exposição pública sem MFA, senha inicial do ADMINISTRADOR sem rotação, ausência de classificação de dados, ausência de separação entre administrar e auditar. Foram debatidos e escolhidos deliberadamente. Se for propor mudança, cite o ADR e o que mudou no contexto.

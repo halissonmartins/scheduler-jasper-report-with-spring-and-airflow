@@ -9,6 +9,7 @@ Deliberadamente **não** reencena no navegador o CRUD de Cadastros nem as regras
 **Status:** ready-for-agent
 
 - [ ] GERENTE autenticado não alcança as telas de ADMINISTRADOR — nem pelo menu, nem por URL direta; RELATOR não alcança nenhuma das duas (ADR-0010)
+- [ ] A tela de auditoria em particular é inalcançável por GERENTE e RELATOR, por menu e por URL direta — é a trilha de quem baixou o quê (ADR-0019)
 - [ ] Janela de Agendamento é seleção de lista fechada na tela de Relatório, não campo livre
 - [ ] Código do Relatório inválido e Código com nome de Produto inexistente exibem mensagem legível na tela, não erro cru
 - [ ] Um caminho feliz encadeado: ADMINISTRADOR cadastra Produto e Relatório → GERENTE cria Role de Relatório, vincula o Relatório e vincula um Relator → o Relator passa a ver o item no catálogo

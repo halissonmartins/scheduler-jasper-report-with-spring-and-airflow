@@ -71,5 +71,9 @@ Usuário que administra Roles de Relatório — cria, vincula a Relatórios e a 
 _Avoid_: supervisor, aprovador, coordenador
 
 **Administrador**:
-Usuário que administra Produtos, Relatórios e os usuários Gerente e Administrador.
+Usuário que administra Produtos, Relatórios e os usuários Gerente e Administrador, e que também consulta as Execuções de Coleta e a trilha de auditoria de downloads (ADR-0019).
 _Avoid_: root, superusuário, admin
+
+**Operação** e **Auditoria**:
+Funções organizacionais, não tipos de usuário. Quem as exerce entra no sistema como Administrador; o acesso a Airflow, Grafana, Jaeger e Prometheus não passa pela aplicação e é delimitado pela rede interna. Ver ADR-0019.
+_Avoid_: papel de operador, perfil de auditor, role de auditoria

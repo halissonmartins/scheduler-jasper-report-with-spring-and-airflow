@@ -2,7 +2,7 @@
 
 Status: ready-for-agent
 Origem: sessão de grilling sobre `docs/descricao-inicial.txt` (2026-07-25)
-Decisões vinculantes: `docs/adr/0001` a `docs/adr/0018` · Glossário: `CONTEXT.md`
+Decisões vinculantes: `docs/adr/0001` a `docs/adr/0019` · Glossário: `CONTEXT.md`
 
 Onde este spec divergir da descrição inicial, valem os ADRs. A linha 32 da descrição está revogada (ADR-0007).
 
@@ -22,7 +22,7 @@ A **Coleta** roda sozinha, agendada por Janela de Agendamento, lendo cada Produt
 
 A **Geração** é sob demanda: o Relator entra, vê quais Relatórios ele pode gerar e para quais datas, escolhe o Formato de Exportação (PDF, CSV, XLSX ou DOCX) e baixa o arquivo na hora. O que ele vê é exatamente o que suas Roles de Relatório permitem — nem mais, nem menos. Todo download fica registrado: quem, o quê, de qual data, em qual formato, quantas linhas, quanto tempo levou.
 
-O Gerente administra as Roles de Relatório, vinculando Relatórios e Relatores a elas. O Administrador cadastra Produtos, Relatórios e os usuários privilegiados. Cada tipo de usuário faz exatamente o que lhe cabe, e nada além.
+O Gerente administra as Roles de Relatório, vinculando Relatórios e Relatores a elas. O Administrador cadastra Produtos, Relatórios e os usuários privilegiados, e é também quem acompanha as Execuções de Coleta e lê a trilha de auditoria (ADR-0019). Cada tipo de usuário faz exatamente o que lhe cabe, e nada além.
 
 ## User Stories
 
@@ -85,6 +85,8 @@ O Gerente administra as Roles de Relatório, vinculando Relatórios e Relatores 
 
 ### Operação
 
+_Persona, não tipo de usuário: quem exerce Operação entra como ADMINISTRADOR, e o que não passa pela aplicação é delimitado pela rede interna (ADR-0019)._
+
 49. Como Operação, quero que cada Relatório cadastrado seja coletado automaticamente na sua Janela de Agendamento, para não depender de disparo manual.
 50. Como Operação, quero ver o Status de Processamento de cada Execução de Coleta, para saber o que rodou e o que falhou.
 51. Como Operação, quero ver início, fim e duração de cada Execução de Coleta, para identificar degradação antes de virar incidente.
@@ -103,6 +105,8 @@ O Gerente administra as Roles de Relatório, vinculando Relatórios e Relatores 
 64. Como Operação, quero subir todo o ambiente com um único comando de Compose, para reproduzir o sistema em uma máquina nova.
 
 ### Auditoria
+
+_Persona, não tipo de usuário: quem exerce Auditoria entra como ADMINISTRADOR (ADR-0019), sem separação de funções entre administrar e auditar._
 
 65. Como Auditor, quero consultar quem gerou e baixou cada Relatório, para responder pedidos de auditoria de acesso.
 66. Como Auditor, quero ver a Data de Referência, o Formato de Exportação e a contagem de linhas de cada download, para saber exatamente que dado saiu.
@@ -150,11 +154,11 @@ Uma coleção de linhas de Relatório. Campos de controle fixos: Data de Referê
 
 Geração é síncrona e devolve o arquivo no próprio response (ADR-0004). Antes de gerar, a API faz a contagem prévia pelo índice composto e recusa com 4xx explícito o que excede o limite do formato — CSV 500.000, XLSX 100.000, PDF 25.000, DOCX 25.000, constantes versionadas no código.
 
-Superfícies necessárias: catálogo de Relatórios disponíveis ao usuário autenticado (filtrado pelas suas Roles de Relatório); Datas de Referência disponíveis por Relatório; geração/download; CRUD de Produto e Relatório (ADMINISTRADOR); CRUD de Role de Relatório e seus vínculos com Relatórios e Relatores (GERENTE); consulta de Execuções de Coleta (Operação); consulta de auditoria de downloads. Documentação por Swagger/OpenAPI, que é a fonte única do contrato — o cliente Angular é gerado dela.
+Superfícies necessárias: catálogo de Relatórios disponíveis ao usuário autenticado (filtrado pelas suas Roles de Relatório); Datas de Referência disponíveis por Relatório; geração/download; CRUD de Produto e Relatório (ADMINISTRADOR); CRUD de Role de Relatório e seus vínculos com Relatórios e Relatores (GERENTE); consulta de Execuções de Coleta e consulta de auditoria de downloads, ambas restritas ao ADMINISTRADOR (ADR-0019). Documentação por Swagger/OpenAPI, que é a fonte única do contrato — o cliente Angular é gerado dela.
 
 ### Autorização (ADR-0005)
 
-A Role de Relatório é role do Keycloak e chega no JWT; o mapeamento role → Relatórios é resolvido no PostgreSQL a cada requisição (cacheável). O tipo de usuário (ADMINISTRADOR/GERENTE/RELATOR) também é role do realm. A regra "GERENTE não cria GERENTE" é imposta no servidor, não na UI. A enumeração de Relatores nas telas do Gerente usa a Admin API do Keycloak — não há espelho de usuários.
+A Role de Relatório é role do Keycloak e chega no JWT; o mapeamento role → Relatórios é resolvido no PostgreSQL a cada requisição (cacheável). O tipo de usuário (ADMINISTRADOR/GERENTE/RELATOR) também é role do realm. A regra "GERENTE não cria GERENTE" é imposta no servidor, não na UI. Não há role de auditoria nem de operação: as consultas de Execuções e da trilha de auditoria pedem ADMINISTRADOR (ADR-0019). A enumeração de Relatores nas telas do Gerente usa a Admin API do Keycloak — não há espelho de usuários.
 
 ### Keycloak (ADR-0014)
 

@@ -9,5 +9,6 @@
 - [ ] Cada geração registra usuário, Código do Relatório, Data de Referência, Formato de Exportação, contagem de linhas, início, fim e desfecho
 - [ ] Tentativas recusadas por permissão e por limite também são registradas, com o desfecho correspondente
 - [ ] Os registros não são apagados junto com os dados coletados
-- [ ] API permite consultar a auditoria por usuário, Relatório e período
+- [ ] API permite ao ADMINISTRADOR consultar a auditoria por usuário, Relatório e período (ADR-0019)
+- [ ] GERENTE e RELATOR recebem 403 na consulta de auditoria, inclusive o RELATOR pedindo a própria trilha
 - [ ] Cenários Cucumber cobrindo download bem-sucedido, recusa por permissão e recusa por limite, todos verificados na trilha
