@@ -7,7 +7,7 @@
 **Status:** ready-for-agent
 
 - [ ] Cadastro público disponível, criando usuário do tipo RELATOR
-- [ ] Verificação de e-mail obrigatória antes de a conta ser utilizável
+- [ ] Verificação de e-mail obrigatória antes de a conta ser utilizável, comprovada lendo a mensagem capturada pelo Mailpit (ADR-0020, ticket 30)
 - [ ] Proteção contra bots ativa no formulário de cadastro, junto com política de senha e detecção de força bruta (ADR-0010)
 - [ ] Recuperação de senha por e-mail funcionando
 - [ ] Conta sem nenhuma Role de Relatório autentica, recebe catálogo vazio e é recusada em qualquer geração

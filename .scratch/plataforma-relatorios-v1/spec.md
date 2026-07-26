@@ -2,7 +2,7 @@
 
 Status: ready-for-agent
 Origem: sessão de grilling sobre `docs/descricao-inicial.txt` (2026-07-25)
-Decisões vinculantes: `docs/adr/0001` a `docs/adr/0019` · Glossário: `CONTEXT.md`
+Decisões vinculantes: `docs/adr/0001` a `docs/adr/0022` · Glossário: `CONTEXT.md`
 
 Onde este spec divergir da descrição inicial, valem os ADRs. A linha 32 da descrição está revogada (ADR-0007).
 
@@ -99,7 +99,7 @@ _Persona, não tipo de usuário: quem exerce Operação entra como ADMINISTRADOR
 58. Como Operação, quero um dashboard com execuções, durações, alertas e falhas, para acompanhar a saúde do pipeline em um lugar.
 59. Como Operação, quero métricas da API (latência de geração, erros, recusas por limite), para saber como o sistema se comporta sob uso real.
 60. Como Operação, quero que o agendamento continue funcionando quando o PostgreSQL fica momentaneamente indisponível, para que uma instabilidade curta não pare as coletas do dia.
-61. Como Operação, quero cadastrar um novo Relatório de um Produto existente sem deploy, para atender pedidos de negócio sem release.
+61. Como Operação, quero que um novo Relatório de um Produto existente passe a ser **coletado** sem deploy, para atender pedidos de negócio sem release — a **Geração** em PDF/XLSX/DOCX ainda exige o `.jrxml` do Relatório e um release (ADR-0022).
 62. Como Operação, quero acessar a interface do Airflow apenas pela rede interna, para que o painel que dispara containers não fique exposto.
 63. Como Operação, quero que a configuração do Keycloak seja aplicada por script versionado a cada deploy, para que os ambientes não divirjam.
 64. Como Operação, quero subir todo o ambiente com um único comando de Compose, para reproduzir o sistema em uma máquina nova.
@@ -173,6 +173,14 @@ DAGs geradas dinamicamente do Cadastro, uma por (Produto × Janela de Agendament
 Processadores exportam métricas via Micrometer OTLP para um OpenTelemetry Collector sempre ativo, que alimenta Prometheus/Grafana — os containers de Coleta são efêmeros e não podem ser raspados. A API expõe métricas normalmente.
 
 O mesmo argumento da efemeridade vale para logs e traces (ADR-0017): log JSON estruturado com `traceId`/`spanId` no MDC via Micrometer Tracing, e mais dois pipelines no Collector — spans para o Jaeger (Badger) e logs para o Loki (monolítico, filesystem), cada um com sua própria janela de retenção, padrão 14 dias (ADR-0018). Amostragem integral. Jaeger, Grafana e Prometheus escutam só na rede interna, ao lado do Airflow; Loki não tem UI própria e é lido pelo Grafana, que por isso entra na mesma fronteira. `traceparent` W3C propagado do Angular para a API e do Airflow para dentro do container do processador; o `runId` vai como atributo de span, amarrando o correlator de negócio ao técnico. Atributos de span e campos de log carregam apenas identificadores de domínio — nunca valor de linha de Relatório.
+
+### Stack de construção e borda (ADR-0020)
+
+Flyway é dono do esquema do PostgreSQL, incluindo as tabelas do Spring Batch; JPA sobe com `ddl-auto=validate`. Traefik termina TLS e concentra o timeout de leitura do ADR-0004; só frontend e API têm rota pública. Mailpit recebe os e-mails do Keycloak em todos os ambientes — com a consequência de que produção não entrega e-mail, e portanto não tem autocadastro nem recuperação de senha até um relay real existir. CI é GitHub Actions em runners x86, contra produção ARM64. springdoc-openapi produz o contrato e o openapi-generator gera o cliente Angular. Sistemas de origem são PostgreSQL somente leitura. Versões de imagem em tags `maior.menor` no `.env`.
+
+### Geração por formato (ADR-0021, ADR-0022)
+
+CSV é escrito em streaming do cursor do MongoDB direto no response, sem Jasper — é o que sustenta seu limite ser vinte vezes o do PDF. PDF, XLSX e DOCX passam pelo Jasper, cada Relatório com seu próprio `.jrxml` versionado e associado pelo Código do Relatório; Relatório sem template é recusado na Geração com mensagem explícita.
 
 ### Frontend
 

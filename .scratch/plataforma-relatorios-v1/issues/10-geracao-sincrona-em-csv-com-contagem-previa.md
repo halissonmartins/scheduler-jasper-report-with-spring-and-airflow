@@ -12,5 +12,6 @@
 - [ ] Limite de CSV é constante versionada no código, valor inicial de 500.000 linhas (ADR-0004)
 - [ ] Tentativa de gerar Relatório sem Role de Relatório correspondente resulta em 403
 - [ ] Nome do arquivo contém Código do Relatório, Data de Referência e formato
-- [ ] CSV é produzido em streaming a partir do cursor, sem materializar o conteúdo em memória
+- [ ] CSV é produzido em streaming a partir do cursor, sem materializar o conteúdo em memória e **sem passar pelo Jasper** (ADR-0021) — a primeira linha é o cabeçalho de colunas
+- [ ] Teste que falharia se a escrita deixasse de ser incremental, para que um `toList()` acidental não reintroduza o OOM em silêncio
 - [ ] Cenários Cucumber cobrindo geração bem-sucedida, recusa por limite, recusa por permissão e data inexistente
