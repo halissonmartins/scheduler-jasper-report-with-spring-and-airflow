@@ -213,5 +213,3 @@ Os valores iniciais dos limites de linhas são conservadores e provisórios: o b
 Ordem de dependência sugerida, porque quase tudo depende dos dois primeiros: `common` (tipos e validações) → esquema PostgreSQL + `processor-starter` com o seam 2 verde → primeiro `processor-<produto>` → API com catálogo e autorização → geração e download → Keycloak (realm + script) → DAGs → frontend → observabilidade → demais processadores. O benchmark k6 pode rodar assim que a geração existir, e deve rodar antes do primeiro uso real.
 
 Riscos aceitos que este spec implementa deliberadamente, e que não devem ser "corrigidos" sem reabrir o ADR correspondente: OOM por geração grande (0004), teto de blob (0004), exposição pública sem MFA (0010), senha inicial sem rotação (0014), ausência de classificação de dados (0016), Compose sem deploy contínuo (0009), consulta ao PostgreSQL em tempo de parse de DAG (0007).
-
-Pendências de higiene fora do código: `.env` precisa entrar no `.gitignore` (hoje não está) e a troca manual da senha inicial do ADMINISTRADOR precisa constar do runbook de implantação.
