@@ -13,4 +13,6 @@
 - [ ] Runbook documenta que a interface do Airflow não é exposta e como acessá-la pela rede interna (ADR-0009)
 - [ ] Runbook documenta o replica set do MongoDB, a rotina de backup e o teste de restauração, todos artesanais no Compose (ADR-0009)
 - [ ] Runbook lista os riscos aceitos vigentes com o ADR correspondente, para quem operar saber o que é deliberado
+- [ ] Verificação de ponta a ponta em ambiente limpo, ADMINISTRADOR: entra com a senha inicial do `.env` e a troca (ADR-0014), cadastra Produto, cadastra Relatório com Código válido, altera nome/descrição/Tempo Estimado/Janela de Agendamento, é recusado ao remover Produto com Relatórios, cria um usuário GERENTE
+- [ ] Verificação de ponta a ponta em ambiente limpo, GERENTE: cria Role de Relatório com nome e descrição, vincula o Relatório a ela, vincula a Role a um Relator recém-cadastrado pela interface pública, lista Relatores e vínculos, desvincula e vê o acesso cair de imediato, é recusado ao tentar criar GERENTE
 - [ ] Verificação de ponta a ponta em ambiente limpo: Coleta agendada dispara, dados chegam, Relator gera e baixa, auditoria registra
