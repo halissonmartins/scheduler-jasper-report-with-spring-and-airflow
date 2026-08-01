@@ -32,33 +32,36 @@ Nome do produto (máximo de 20 caracteres) + - + código com 4 números
 - Ao iniciar o container do KeyCloak, automaticamente irá criar um usuário do tipo ADMINISTRADOR (senha configurada em variável de ambiente).
 - Os usuários do tipo RELATOR irão se cadastrar somente via interface WEB pública.
 - Todos os tipos de usuários podem trocar a senha.
-- A inclusão de um novo relatório no repositório não exige o seu cadastro prévio.
 - A geração e download do relatório deve ser feito pelo módulo de API REST.
 - Em cada módulo de processamento de relatórios criar dois relatórios de exemplo com imagens e fontes diferentes. Pesquisar e definir como será implementado os dois exemplos de cada módulo baseados na sua descrição.
 - Formato mensagem de erro no Swagger: horário do erro(formato ISO 8601), descrição do erro, Correlation ID, Botão para copiar formato em JSON
 - Componente para exibir mensagem de erro no Frontend: horário do erro, descrição do erro, Correlation ID, Botão para copiar formato em JSON
-- O CSV não passa pelo Jasper Reports. É escrito linha a linha, direto do cursor para o corpo do response, sem materializar a coleção em memória. O Jasper permanece responsável por PDF, XLSX e DOCX.
+- O CSV não passa pelo Jasper Reports. Persistir o dataset bruto em CSV.gz ao lado do .jrprint. O Jasper permanece responsável por PDF, XLSX e DOCX.
 - Modo de concessão de permissão dos usuários aos relatórios: relatório - role de relatório - grupo de usuários - usuário
+- Cada módulo processador lê exclusivamente do esquema PostgreSQL do seu próprio produto, que representa a base transacional daquele domínio. A Coleta é a única fronteira de leitura: nenhum outro módulo acessa esses esquemas.
+- O histórico de downloads não são expurgados juntos com os relatórios no MinIO.
 
 ## Regras Arquiteturais:
 - O código fonte será armazenado em um mono repositório com versão única no GitHub.
 - Automação do CI com GitHub Actions
 - Armazenamento dos dados em um repositório que implementa o padrão S3 (Minio) 
-- Em todos módulos retorna status UP ao acessar os endpoint http://localhost:/actuator/health/liveness e http://localhost:/actuator/health/readiness
-- Módulo API REST executando na porta 8080 e demais módulos nas portas seguintes
-- Log, span, trace e métrica devem ser enviados para o Prometheus
-- Correlation ID propagado automaticamente e formado por traceId e spanId nos logs via MDC pertindo a pesquisa no Graylog pelo Correlation ID
+- O módulo API REST retorna status UP ao acessar os endpoint http://localhost:/actuator/health/liveness e http://localhost:/actuator/health/readiness
+- Módulo API REST executando na porta 8080
+- Log, span, trace e métrica devem ser enviados para o OTel Collector
+- Correlation ID propagado automaticamente e formado por traceId nos logs via MDC pertindo a pesquisa no Graylog pelo Correlation ID
 - Logs estruturados enriquecidos com traceId e spanId do OpenTelemetry, permitindo correlação direta entre logs e traces.
 - SDK do OpenTelemetry é desabilitado para que os testes (JUnit/Cucumber/H2) não dependam de Collector nem gerem telemetria
 - Sempre que possível usar as labels nome do produto e código do relatório nas métricas
 - Ciclo de vida dos dados no Minio: criar uma variável de ambiente (valor padrão 7 dias) para definir quando os dados salvos devem ser apagados automaticamente
-- Gherkin em todas as camadas, inclusive na Coleta
+- Gherkin para todo comportamento observável pelo negócio (aceitação e integração, inclusive a Coleta)
 - Produção roda Docker Compose em VMs
 - Cada Relatório tem o seu próprio JRXML, versionado no repositório e associado ao seu módulo processador
 - A Role de Relatório é uma role real do Keycloak e viaja no JWT
+- Mailpit para verificação de e-mail e reset de senha do Keycloak
+- O Account Console e a página de registro do Keycloak (com tema customizado) serão expostos seletivamente pelo Traefik para troca de senha e cadastro
 
 ## Tipos de usuário:
-- ADMINISTRADOR: efetua o cadastrado/remoção de usuários do tipo GERENTE/ADMINISTRADOR, cadastro/remoção de produtos, cadastro/remoção de relatórios, visualização do histórico.
+- ADMINISTRADOR: efetua o cadastrado/remoção de usuários do tipo GERENTE/ADMINISTRADOR, cadastro/remoção de produtos, cadastro/remoção de relatórios, visualização do histórico downloads.
 - GERENTE: somente cadastra roles do tipo "RELATORIO", vincula roles de relatórios a relatórios, cadastra/remove grupos, vincula roles de relatórios a grupos de usuários do tipo RELATOR, inclui/remove usuários dos grupos e exclusão dos usuários do tipo RELATOR.
 - RELATOR: apenas consegue gerar os relatórios em seu usuário tem acesso.
 
@@ -69,7 +72,6 @@ Nome do produto (máximo de 20 caracteres) + - + código com 4 números
 - Revisão da Tech Stack
 - UI de navegação via drop-down para visualizar os relatórios disponíveis por dd/MM/yyyy
 - Definição da biblioteca de coleta de log que será utilizada pelo Spring
-- Resolver o problema do CSV que não passa pelo Jasper
 - Definição dos nomes dos módulos 
 - Definição da arquitetura de cada módulo e sua respectiva estrutura
 - Definição dos relatorios de exemplo e seus respectivos modelos de dados
@@ -97,7 +99,6 @@ Nome do produto (máximo de 20 caracteres) + - + código com 4 números
 - Apache Airflow
 - PostgreSQL
 - Flyway 
-- Caffeine
 - Docker Compose
 - KeyCloak
 - Swagger
@@ -118,7 +119,7 @@ Nome do produto (máximo de 20 caracteres) + - + código com 4 números
 - Jaeger 
 - Cucumber
 - Testes de Integração (JUnit 5 + Cucumber + H2 em modo PostgreSQL)
-- Testes de E2E (Newman CLI + Kafka CLI + psql)
+- Testes de E2E (Newman CLI + psql)
 - E2E de navegador (Playwright)
 
 ## Tech Stack sugerida para Frontend:
@@ -130,9 +131,10 @@ Nome do produto (máximo de 20 caracteres) + - + código com 4 números
 
 Antes do final cada fase solicitar a revisão e aguardar a aprovação
 
-- Prototipação usando somente HTML, CSS e JavaScript das seguintes funcionalidades
-- Swagger temporário onde depois será usado o SpringDOC OpenAPI
-- Módulos compilando e endpoints do Actuator liveness e readiness respondendo UP
+- Prototipação usando somente HTML, CSS e JavaScript das seguintes funcionalidades (descartável)
+- Swagger descartável onde depois será substituído pelo SpringDOC OpenAPI
+- Módulos compilando 
+- Endpoints do Actuator liveness e readiness respondendo UP no módulo API REST
 
 ## Protótipação das principais funcionalidades
 - drop-down para visualizar os relatórios disponíveis por dd/MM/yyyy -> Nome do produto -> Código do relatório
