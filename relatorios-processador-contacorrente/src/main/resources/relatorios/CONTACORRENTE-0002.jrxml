@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CONTACORRENTE-0002 — Posição de Cheque Especial e Tarifas por Agência.
+
+  Sintético denso. `limite_uso` e `tarifa` são o substrato próprio deste Produto
+  — o papel que `remuneracao_mensal` cumpre em Poupança e `segmentacao` em
+  Cliente. Sem eles o sintético repetiria o analítico um nível acima.
+
+  A prova da substituição de fonte NÃO se repete aqui: vive no POUPANCA-0002
+  (ticket 40) e guarda o empacotamento do monorepo inteiro.
+
+  GRADE COMUM (ticket 22), colunas: 0/40  40/110  150/45  195/60  255/80  335/75  410/70  480/75
+-->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+                                  http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="CONTACORRENTE-0002"
+              pageWidth="595" pageHeight="842"
+              columnWidth="555" leftMargin="20" rightMargin="20"
+              topMargin="20" bottomMargin="20">
+
+    <parameter name="DATA_REFERENCIA" class="java.time.LocalDate"/>
+    <parameter name="LOGO" class="java.io.InputStream" isForPrompting="false"/>
+
+    <field name="agenciaCodigo"     class="java.lang.Short"/>
+    <field name="agenciaNome"       class="java.lang.String"/>
+    <field name="tipoConta"         class="java.lang.String"/>
+    <field name="contasComLimite"   class="java.lang.Long"/>
+    <field name="limiteContratado"  class="java.math.BigDecimal"/>
+    <field name="limiteUtilizado"   class="java.math.BigDecimal"/>
+    <field name="jurosApurados"     class="java.math.BigDecimal"/>
+    <field name="receitaTarifa"     class="java.math.BigDecimal"/>
+
+    <variable name="totalUtilizado" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{limiteUtilizado}]]></variableExpression>
+    </variable>
+    <variable name="totalTarifa" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{receitaTarifa}]]></variableExpression>
+    </variable>
+
+    <title>
+        <band height="52">
+            <image>
+                <reportElement x="0" y="0" width="80" height="40"/>
+                <imageExpression><![CDATA[$P{LOGO}]]></imageExpression>
+            </image>
+            <staticText>
+                <reportElement x="90" y="2" width="465" height="22"/>
+                <textElement><font size="13" isBold="true"/></textElement>
+                <text><![CDATA[Posição de Cheque Especial e Tarifas por Agência]]></text>
+            </staticText>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="90" y="26" width="200" height="14"/>
+                <textElement><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$P{DATA_REFERENCIA}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="20">
+            <staticText><reportElement x="0"   y="0" width="40"  height="20"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Agência]]></text></staticText>
+            <staticText><reportElement x="40"  y="0" width="110" height="20"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Nome da Agência]]></text></staticText>
+            <staticText><reportElement x="150" y="0" width="45"  height="20"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Tipo de Conta]]></text></staticText>
+            <staticText><reportElement x="195" y="0" width="60"  height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Contas com Limite]]></text></staticText>
+            <staticText><reportElement x="255" y="0" width="80"  height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Limite Contratado]]></text></staticText>
+            <staticText><reportElement x="335" y="0" width="75"  height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Limite Utilizado]]></text></staticText>
+            <staticText><reportElement x="410" y="0" width="70"  height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Juros Apurados]]></text></staticText>
+            <staticText><reportElement x="480" y="0" width="75"  height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Receita de Tarifas]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="14">
+            <textField><reportElement x="0"   y="0" width="40"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{agenciaCodigo}]]></textFieldExpression></textField>
+            <textField><reportElement x="40"  y="0" width="110" height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{agenciaNome}]]></textFieldExpression></textField>
+            <textField><reportElement x="150" y="0" width="45"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{tipoConta}]]></textFieldExpression></textField>
+            <textField pattern="#,##0"><reportElement x="195" y="0" width="60" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{contasComLimite}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="255" y="0" width="80" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{limiteContratado}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="335" y="0" width="75" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{limiteUtilizado}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="410" y="0" width="70" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{jurosApurados}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="480" y="0" width="75" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{receitaTarifa}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+
+    <summary>
+        <band height="20">
+            <staticText>
+                <reportElement x="0" y="0" width="335" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <text><![CDATA[Total geral]]></text>
+            </staticText>
+            <textField pattern="#,##0.00">
+                <reportElement x="335" y="0" width="75" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{totalUtilizado}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00">
+                <reportElement x="480" y="0" width="75" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{totalTarifa}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+</jasperReport>

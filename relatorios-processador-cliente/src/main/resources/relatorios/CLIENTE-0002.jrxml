@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CLIENTE-0002 — Distribuição da Base por Segmento e UF.
+
+  Sintético denso: imagens embutidas, agregação e formatação. A prova da
+  substituição de fonte NÃO se repete aqui — ela vive no POUPANCA-0002
+  (ticket 40) e guarda o empacotamento do monorepo inteiro; um segundo teste
+  não acrescentaria cobertura.
+
+  GRADE COMUM (ticket 22), colunas: 0/40  40/95  135/70  205/75  280/90  370/90  460/95
+-->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+                                  http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="CLIENTE-0002"
+              pageWidth="595" pageHeight="842"
+              columnWidth="555" leftMargin="20" rightMargin="20"
+              topMargin="20" bottomMargin="20">
+
+    <parameter name="DATA_REFERENCIA" class="java.time.LocalDate"/>
+    <parameter name="LOGO" class="java.io.InputStream" isForPrompting="false"/>
+
+    <field name="uf"              class="java.lang.String"/>
+    <field name="segmento"        class="java.lang.String"/>
+    <field name="faixaRenda"      class="java.lang.String"/>
+    <field name="quantidade"      class="java.lang.Long"/>
+    <field name="rendaMedia"      class="java.math.BigDecimal"/>
+    <field name="scoreMedio"      class="java.math.BigDecimal"/>
+    <field name="percentualAtivo" class="java.math.BigDecimal"/>
+
+    <variable name="totalQuantidade" class="java.lang.Long" calculation="Sum">
+        <variableExpression><![CDATA[$F{quantidade}]]></variableExpression>
+    </variable>
+    <variable name="quantidadeUf" class="java.lang.Long" resetType="Group"
+              resetGroup="Uf" calculation="Sum">
+        <variableExpression><![CDATA[$F{quantidade}]]></variableExpression>
+    </variable>
+
+    <group name="Uf">
+        <groupExpression><![CDATA[$F{uf}]]></groupExpression>
+        <groupHeader>
+            <band height="18">
+                <textField>
+                    <reportElement x="0" y="0" width="280" height="18"/>
+                    <textElement><font size="10" isBold="true"/></textElement>
+                    <textFieldExpression><![CDATA["UF " + $F{uf}]]></textFieldExpression>
+                </textField>
+            </band>
+        </groupHeader>
+        <groupFooter>
+            <band height="16">
+                <staticText>
+                    <reportElement x="0" y="0" width="205" height="16"/>
+                    <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                    <text><![CDATA[Total da UF]]></text>
+                </staticText>
+                <textField pattern="#,##0">
+                    <reportElement x="205" y="0" width="75" height="16"/>
+                    <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                    <textFieldExpression><![CDATA[$V{quantidadeUf}]]></textFieldExpression>
+                </textField>
+            </band>
+        </groupFooter>
+    </group>
+
+    <title>
+        <band height="52">
+            <image>
+                <reportElement x="0" y="0" width="80" height="40"/>
+                <imageExpression><![CDATA[$P{LOGO}]]></imageExpression>
+            </image>
+            <staticText>
+                <reportElement x="90" y="2" width="465" height="22"/>
+                <textElement><font size="14" isBold="true"/></textElement>
+                <text><![CDATA[Distribuição da Base por Segmento e UF]]></text>
+            </staticText>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="90" y="26" width="200" height="14"/>
+                <textElement><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$P{DATA_REFERENCIA}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="20">
+            <staticText><reportElement x="0"   y="0" width="40" height="20"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[UF]]></text></staticText>
+            <staticText><reportElement x="40"  y="0" width="95" height="20"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Segmento]]></text></staticText>
+            <staticText><reportElement x="135" y="0" width="70" height="20"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Faixa de Renda]]></text></staticText>
+            <staticText><reportElement x="205" y="0" width="75" height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Quantidade de Clientes]]></text></staticText>
+            <staticText><reportElement x="280" y="0" width="90" height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Renda Média Estimada]]></text></staticText>
+            <staticText><reportElement x="370" y="0" width="90" height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Score Médio]]></text></staticText>
+            <staticText><reportElement x="460" y="0" width="95" height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Percentual Ativo]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="14">
+            <textField><reportElement x="0"   y="0" width="40" height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{uf}]]></textFieldExpression></textField>
+            <textField><reportElement x="40"  y="0" width="95" height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{segmento}]]></textFieldExpression></textField>
+            <textField><reportElement x="135" y="0" width="70" height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{faixaRenda}]]></textFieldExpression></textField>
+            <textField pattern="#,##0"><reportElement x="205" y="0" width="75" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{quantidade}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="280" y="0" width="90" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{rendaMedia}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.0"><reportElement x="370" y="0" width="90" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{scoreMedio}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="460" y="0" width="95" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{percentualAtivo}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+
+    <summary>
+        <band height="20">
+            <staticText>
+                <reportElement x="0" y="0" width="205" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <text><![CDATA[Total geral]]></text>
+            </staticText>
+            <textField pattern="#,##0">
+                <reportElement x="205" y="0" width="75" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{totalQuantidade}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+</jasperReport>

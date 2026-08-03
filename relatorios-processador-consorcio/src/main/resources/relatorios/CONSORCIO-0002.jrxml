@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CONSORCIO-0002 — Posição dos Grupos e Assembleia do Dia.
+
+  É onde o evento MENSAL cabe dentro de um relatório DIÁRIO: uma linha por grupo,
+  com o resultado da assembleia daquele dia quando houve. A assembleia é
+  propriedade do grupo, não da carteira — e com centenas de grupos há assembleia
+  todo dia útil, o que dissolve a mensalidade sem tocar no ticket 39.
+
+  Grupos sem assembleia no dia aparecem com as colunas de contemplação zeradas:
+  a linha continua dizendo algo (posição do grupo), então não é dado ausente.
+
+  GRADE COMUM (ticket 22), colunas: 0/45  45/120  165/55  220/55  275/55  330/75  405/75  480/75
+-->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+                                  http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="CONSORCIO-0002"
+              pageWidth="595" pageHeight="842"
+              columnWidth="555" leftMargin="20" rightMargin="20"
+              topMargin="20" bottomMargin="20">
+
+    <parameter name="DATA_REFERENCIA" class="java.time.LocalDate"/>
+    <parameter name="LOGO" class="java.io.InputStream" isForPrompting="false"/>
+
+    <field name="grupoCodigo"       class="java.lang.Integer"/>
+    <field name="bemReferencia"     class="java.lang.String"/>
+    <field name="cotasAtivas"       class="java.lang.Long"/>
+    <field name="cotasContempladas" class="java.lang.Long"/>
+    <field name="cotasCanceladas"   class="java.lang.Long"/>
+    <field name="fundoComum"        class="java.math.BigDecimal"/>
+    <field name="contemplacoesSorteio" class="java.lang.Long"/>
+    <field name="contemplacoesLance"   class="java.lang.Long"/>
+
+    <variable name="totalAtivas" class="java.lang.Long" calculation="Sum">
+        <variableExpression><![CDATA[$F{cotasAtivas}]]></variableExpression>
+    </variable>
+    <variable name="totalFundo" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{fundoComum}]]></variableExpression>
+    </variable>
+
+    <title>
+        <band height="52">
+            <image>
+                <reportElement x="0" y="0" width="80" height="40"/>
+                <imageExpression><![CDATA[$P{LOGO}]]></imageExpression>
+            </image>
+            <staticText>
+                <reportElement x="90" y="2" width="465" height="22"/>
+                <textElement><font size="13" isBold="true"/></textElement>
+                <text><![CDATA[Posição dos Grupos e Assembleia do Dia]]></text>
+            </staticText>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="90" y="26" width="200" height="14"/>
+                <textElement><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$P{DATA_REFERENCIA}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="20">
+            <staticText><reportElement x="0"   y="0" width="45"  height="20"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Grupo]]></text></staticText>
+            <staticText><reportElement x="45"  y="0" width="120" height="20"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Bem de Referência]]></text></staticText>
+            <staticText><reportElement x="165" y="0" width="55"  height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Cotas Ativas]]></text></staticText>
+            <staticText><reportElement x="220" y="0" width="55"  height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Cotas Contempladas]]></text></staticText>
+            <staticText><reportElement x="275" y="0" width="55"  height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Cotas Canceladas]]></text></staticText>
+            <staticText><reportElement x="330" y="0" width="75"  height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Fundo Comum]]></text></staticText>
+            <staticText><reportElement x="405" y="0" width="75"  height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Contemplações por Sorteio]]></text></staticText>
+            <staticText><reportElement x="480" y="0" width="75"  height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Contemplações por Lance]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="14">
+            <textField><reportElement x="0"   y="0" width="45"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{grupoCodigo}]]></textFieldExpression></textField>
+            <textField><reportElement x="45"  y="0" width="120" height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{bemReferencia}]]></textFieldExpression></textField>
+            <textField pattern="#,##0"><reportElement x="165" y="0" width="55" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{cotasAtivas}]]></textFieldExpression></textField>
+            <textField pattern="#,##0"><reportElement x="220" y="0" width="55" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{cotasContempladas}]]></textFieldExpression></textField>
+            <textField pattern="#,##0"><reportElement x="275" y="0" width="55" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{cotasCanceladas}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="330" y="0" width="75" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{fundoComum}]]></textFieldExpression></textField>
+            <textField pattern="#,##0"><reportElement x="405" y="0" width="75" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{contemplacoesSorteio}]]></textFieldExpression></textField>
+            <textField pattern="#,##0"><reportElement x="480" y="0" width="75" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{contemplacoesLance}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+
+    <summary>
+        <band height="20">
+            <staticText>
+                <reportElement x="0" y="0" width="165" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <text><![CDATA[Total geral]]></text>
+            </staticText>
+            <textField pattern="#,##0">
+                <reportElement x="165" y="0" width="55" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{totalAtivas}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00">
+                <reportElement x="330" y="0" width="75" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{totalFundo}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+</jasperReport>

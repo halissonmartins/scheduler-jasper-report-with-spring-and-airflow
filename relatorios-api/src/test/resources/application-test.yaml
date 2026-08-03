@@ -1,0 +1,19 @@
+# Perfil "test" — SOBREPÕE, não substitui.
+#
+# Um `application.yaml` aqui SOMBREARIA o de produção, e o teste passaria a verificar
+# uma cópia da configuração em vez da configuração real. Como perfil, o
+# application.yaml principal é carregado normalmente — com os grupos de health de
+# verdade — e só o que está abaixo é sobreposto.
+#
+# SDK do OTel LIGADO, exportador `none`: sem tráfego de rede e sem dependência de
+# Collector, com o MDC preenchido. É a preocupação original da descrição inicial,
+# atendida por outro meio (ticket 26).
+otel:
+  sdk:
+    disabled: false
+  traces:
+    exporter: none
+  metrics:
+    exporter: none
+  logs:
+    exporter: none

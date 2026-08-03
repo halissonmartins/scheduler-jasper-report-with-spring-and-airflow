@@ -1,0 +1,79 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    # Aponta para o schema de controle. A API só LÊ daqui — a única escrita dela é o
+    # histórico de downloads (ticket 04).
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/relatorios}
+    username: ${DB_USER:app_api}
+    password: ${DB_PASSWORD:}
+    hikari:
+      # Sem conexão no arranque: o contexto sobe mesmo com o banco fora, e quem
+      # reporta a indisponibilidade é o readiness — que é onde ela deve aparecer.
+      initialization-fail-timeout: -1
+      # CRÍTICO PARA O AMORTECIMENTO FUNCIONAR. O default do Hikari é 30 s: com o
+      # banco fora, getConnection() bloqueia até lá, o health check estoura o próprio
+      # timeout, e a instância é marcada como não-saudável por TIMEOUT DE HTTP — sem
+      # que a falha jamais alcance o indicador `banco`. O contador de falhas
+      # consecutivas nunca incrementa, e o amortecimento simplesmente não acontece.
+      # Precisa caber com folga dentro do timeout do healthcheck (5 s no Compose).
+      connection-timeout: 2000
+
+management:
+  # ------------------------------------------------------------------ exposição
+  # `management.endpoints.web.exposure.include` fica no DEFAULT do Spring — só `health`.
+  # NÃO acrescente nada aqui "para facilitar o debug": env, configprops, beans e heapdump
+  # vazam configuração e credencial, e esta é a segunda camada que torna a allowlist do
+  # Traefik uma barreira a mais em vez da única (ticket 28).
+  #
+  # Atenção ao falso-verde: sem esta linha ausente, /actuator/env responde 401 (o Security
+  # intercepta) e não 404. Um teste que só olhe o código HTTP passaria pelo motivo errado.
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+      # ----------------------------------------------------------------- grupos
+      # ATENÇÃO À ALTURA DESTE BLOCO: é `management.endpoint.health.group`.
+      # Escrito um nível acima (management.group) o Spring simplesmente IGNORA, o
+      # readiness responde UP sem checar nada, e nada avisa. Foi o que aconteceu na
+      # primeira tentativa desta fase.
+      group:
+        # liveness NUNCA depende de recurso externo. Se depender, uma indisponibilidade
+        # do banco reinicia containers saudáveis num laço — a pior reação possível.
+        liveness:
+          include: livenessState
+        # readiness = estado da aplicação + PostgreSQL AMORTECIDO (indicador "banco").
+        # O MinIO fica FORA de propósito: sem ele a listagem funciona e só a exportação
+        # falha, com erro do catálogo e Correlation ID — mais útil que um 503 opaco.
+        readiness:
+          include: readinessState,banco
+          show-details: always
+        # Dependências em estado CRU, para Prometheus e Grafana observarem.
+        # Nunca para o Traefik decidir balanceamento.
+        dependencias:
+          include: db
+          show-details: always
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+relatorios:
+  saude:
+    banco:
+      falhas-para-cair: 3
+      timeout-segundos: 2
+
+otel:
+  sdk:
+    # LIGADO em todo ambiente. A regra original da descrição inicial ("SDK desabilitado
+    # nos testes") foi reescrita no ticket 26: com o SDK desligado não há span, o MDC
+    # fica vazio, e todo cenário que valide Correlation ID passa a exercitar o fallback
+    # em vez do caminho de produção.
+    disabled: false

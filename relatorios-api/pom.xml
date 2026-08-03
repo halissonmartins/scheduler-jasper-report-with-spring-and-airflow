@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>br.com.relatorios</groupId>
+    <artifactId>relatorios-parent</artifactId>
+    <version>${revision}</version>
+  </parent>
+  <artifactId>relatorios-api</artifactId>
+  <name>API REST</name>
+  <description>Porta 8080. Lê o schema de controle; escreve apenas o histórico de downloads.</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>br.com.relatorios</groupId>
+      <artifactId>relatorios-comum</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+    <!-- A API exporta: precisa do Jasper e das mesmas fontes/renderers no classpath
+         (trade-off da descrição inicial). Desserializa na própria JVM (ADR 0002). -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>

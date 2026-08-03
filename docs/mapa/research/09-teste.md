@@ -1,0 +1,509 @@
+# 09 — Stack de teste: H2 vs Testcontainers, Cucumber, Spring Batch, Newman, Playwright, MinIO, JaCoCo
+
+> Pesquisa de apoio ao ticket [`09-stack-teste.md`](../issues/09-stack-teste.md).
+> Fontes primárias: documentação oficial de cada projeto, código-fonte no GitHub e **medições reais** feitas neste ambiente (Ubuntu 24.04 ARM64, Docker 29.5.2, H2 2.4.240).
+> Data: 2026-08-02.
+
+---
+
+## Sumário das versões (fontes primárias)
+
+Versões resolvidas em `repo1.maven.org` e no BOM `spring-boot-dependencies:4.1.0` em 2026-08-02:
+
+| Artefato | Versão | Origem |
+|---|---|---|
+| `org.junit.jupiter:junit-jupiter` | **6.0.3** | gerenciado pelo BOM do Spring Boot 4.1.0 (`junit-jupiter.version`) |
+| `org.springframework.batch:spring-batch-test` | **6.0.4** | BOM do Spring Boot 4.1.0 (`spring-batch.version`) |
+| `org.testcontainers:testcontainers` | **2.0.5** | BOM do Spring Boot 4.1.0 (`testcontainers.version`) |
+| `org.flywaydb:flyway-core` | **12.4.0** | BOM do Spring Boot 4.1.0 (`flyway.version`) — na Central o `latest` já é 13.1.0 |
+| `com.h2database:h2` | **2.4.240** | BOM do Spring Boot 4.1.0 (`h2.version`) |
+| `io.cucumber:*` | **7.34.6** | [maven-metadata](https://repo1.maven.org/maven2/io/cucumber/cucumber-java/maven-metadata.xml) — **não** é gerenciado pelo BOM do Spring Boot; exige `cucumber-bom` próprio |
+| `org.jacoco:jacoco-maven-plugin` | **0.8.15** | [maven-metadata](https://repo1.maven.org/maven2/org/jacoco/jacoco-maven-plugin/maven-metadata.xml) |
+| `com.microsoft.playwright:playwright` | **1.61.0** | [maven-metadata](https://repo1.maven.org/maven2/com/microsoft/playwright/playwright/maven-metadata.xml) |
+
+Dois pontos de atenção que a Tech Stack sugerida ainda não reflete:
+
+1. **"JUnit 5" hoje é o Jupiter 6.x.** O nome do modelo de programação continua o mesmo, mas o artefato saltou para 6.x. Não fixe versão à mão — herde do BOM do Spring Boot.
+2. **Testcontainers virou 2.x e renomeou os módulos.** O artefato passou de `org.testcontainers:postgresql` (último 1.21.4) para `org.testcontainers:testcontainers-postgresql` (2.0.5). O mesmo vale para `testcontainers-minio` e `testcontainers-junit-jupiter`. Verificado consultando `maven-metadata.xml` dos dois nomes: os artefatos `1.x` param em 1.21.4 e os `testcontainers-*` só existem em 2.0.5. A documentação do módulo PostgreSQL já usa o nome novo ([postgres.md](https://github.com/testcontainers/testcontainers-java/blob/main/docs/modules/databases/postgres.md)).
+
+---
+
+## 1. H2 em modo PostgreSQL vs Testcontainers
+
+### 1.1 O que a própria documentação do H2 admite
+
+A página de features do H2 abre a seção de modos de compatibilidade com a ressalva mais importante de todo este documento:
+
+> "For certain features, this database can emulate the behavior of specific databases. However, **only a small subset of the differences between databases are implemented in this way**."
+> — [h2database.com/html/features.html](https://www.h2database.com/html/features.html)
+
+O modo PostgreSQL é ativado por `jdbc:h2:...;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH` e a lista **completa** do que ele muda cabe em um parágrafo: metadados de colunas com alias, arredondamento em conversão de ponto flutuante para inteiro, colunas de sistema `ctid`/`oid`, `GREATEST`/`LEAST` ignorando NULL, `LOG(x)` base 10, comportamento do `REGEXP_REPLACE`, `LIMIT`/`OFFSET`, tipos legados `SERIAL`/`BIGSERIAL`, padding de `CHAR`, `NUMERIC`/`DECIMAL` sem parâmetros tratados como `DECFLOAT`, `MONEY` como `NUMERIC(19,2)`, `ARRAY_SLICE()` tolerante, `EXTRACT(DOW)` 0-6, `UPDATE ... FROM` parcial, `GROUP BY` por posição — e, textualmente:
+
+> "**ON CONFLICT DO NOTHING** is supported in INSERT statements."
+> — [h2database.com/html/features.html](https://www.h2database.com/html/features.html)
+
+Ou seja: `DO NOTHING` e só. `ON CONFLICT ... DO UPDATE SET` (o upsert de verdade) não aparece na lista.
+
+Sobre JSON, o H2 **não tem `jsonb`**. O tipo nativo é `JSON`:
+
+> "A `RFC 8259`-compliant `JSON` text. See also json literal grammar. **Mapped to `byte[]`.**"
+> — [h2database.com/html/datatypes.html](https://www.h2database.com/html/datatypes.html)
+
+E o catálogo de funções JSON do H2 tem exatamente duas entradas, `JSON_OBJECT` e `JSON_ARRAY` — construtores do SQL:2016, nenhum operador de acesso ou de containment ([h2database.com/html/functions.html](https://www.h2database.com/html/functions.html)).
+
+### 1.2 Verificação empírica — o que realmente acontece
+
+Rodei um probe JDBC contra **H2 2.4.240** (a versão que o BOM do Spring Boot 4.1.0 gerencia) na URL exata recomendada pela doc, com DDL/DML no estilo das migrações que este projeto vai ter. Resultado bruto:
+
+| Construção PostgreSQL | H2 `MODE=PostgreSQL` |
+|---|---|
+| `CREATE SCHEMA app` | OK |
+| coluna do tipo `jsonb` | **OK — e é aqui que mora o problema (ver 1.3)** |
+| coluna do tipo `json` | OK |
+| coluna `text[]` | **FALHA** — `Syntax error ... "tags text[*][]"` |
+| `BIGINT GENERATED BY DEFAULT AS IDENTITY` | OK |
+| `ON CONFLICT DO NOTHING` (sem coluna) | OK |
+| `ON CONFLICT (data_ref, codigo) DO NOTHING` | **FALHA** — `Syntax error` |
+| `ON CONFLICT (...) DO UPDATE SET ... = EXCLUDED....` | **FALHA** — `Syntax error` |
+| `gen_random_uuid()`, `now()` | OK |
+| operador `->>` | **FALHA** — `Syntax error` |
+| operador `@>` | **FALHA** — `Syntax error` |
+| `jsonb_build_object()` | **FALHA** — `Function "jsonb_build_object" not found` |
+| `JSON_OBJECT('a': 1)` | OK (sintaxe H2/SQL:2016, **não** roda no PostgreSQL) |
+| `string_agg()`, `to_char()`, `date_trunc()`, `INTERVAL` | OK |
+| `CREATE INDEX ... USING GIN` | **FALHA** — `expected "BTREE, HASH, RTREE"` |
+| `CREATE EXTENSION pgcrypto` | **FALHA** — `Syntax error` |
+| `FOR UPDATE SKIP LOCKED` | OK |
+| `CREATE TYPE ... AS ENUM` | OK |
+| `PARTITION BY RANGE` | **FALHA** |
+| `GENERATED ALWAYS AS (...) STORED` | **FALHA** (a palavra `STORED` não é aceita) |
+| `COMMENT ON COLUMN` | OK |
+| `CREATE FUNCTION ... LANGUAGE plpgsql` | **FALHA** — `Syntax error` |
+| `CREATE MATERIALIZED VIEW` | OK |
+| `ILIKE` | OK |
+| `serial` | OK |
+| `timestamptz` (abreviação) | **FALHA** — `Unknown data type: "TIMESTAMPTZ"` |
+| `timestamp with time zone` (por extenso) | OK |
+| `INSERT ... RETURNING id` | **FALHA** — `Syntax error` |
+
+Um recorte disso já bate item a item com o que a análise comportamental previu: *"migrações com `jsonb`, tipos específicos, `ON CONFLICT` ou funções nativas simplesmente não rodam no H2"*. A diferença é que agora está medido, não suposto.
+
+### 1.3 A falha silenciosa — o argumento decisivo
+
+O `ON CONFLICT (cols)` e o `->>` falham com erro de sintaxe. Isso é **ruim, mas honesto**: a build quebra, você descobre na hora. O caso perigoso é outro.
+
+O H2 **aceita** `CREATE TABLE t (dados jsonb)` sem reclamar. Consultando o `information_schema` logo depois:
+
+```
+coluna dados -> tipo real no H2: json
+```
+
+Ou seja, o H2 traduz `jsonb` silenciosamente para o seu `JSON` (que é `byte[]`, RFC 8259 — [datatypes.html](https://www.h2database.com/html/datatypes.html)). A migração Flyway passa. Aí vem o INSERT:
+
+```sql
+INSERT INTO t (id, dados) VALUES (1, '{"a":1}');           -- literal string, como se escreve no PostgreSQL
+INSERT INTO t (id, dados) VALUES (2, '{"a":1}' FORMAT JSON); -- sintaxe FORMAT JSON, exclusiva do H2
+```
+
+Os dois passam. Mas o valor gravado é diferente:
+
+```
+linha 1  getString = "{\"a\":1}"     <- uma STRING JSON contendo o texto
+linha 2  getString = {"a":1}         <- o OBJETO JSON
+```
+
+No PostgreSQL, `'{"a":1}'` numa coluna `jsonb` grava o **objeto**. No H2 grava uma **string JSON escapada**, a menos que se acrescente `FORMAT JSON` — sintaxe que, por sua vez, não existe no PostgreSQL. Não há erro em lugar nenhum. O teste verde no H2 e a produção no PostgreSQL guardam coisas diferentes na mesma coluna.
+
+Isso é exatamente a "divergência que aparece tarde" da seção 6 da análise comportamental, com a agravante de ser **indetectável pelo próprio teste**. E o requisito "estrutura com os dados não estruturados" (`docs/descricao-inicial.md`) torna `jsonb` provável no schema de controle.
+
+### 1.4 O H2 já obriga a manter DDL duplicado — o Spring Batch prova isso
+
+Mesmo que se decidisse escrever SQL portátil à mão, o `JobRepository` do Spring Batch já não é portátil. O projeto versiona um script de DDL **por fabricante** ([diretório `org/springframework/batch/core`](https://github.com/spring-projects/spring-batch/tree/main/spring-batch-core/src/main/resources/org/springframework/batch/core)): `schema-h2.sql`, `schema-postgresql.sql`, `schema-oracle.sql`, etc. Diferença real entre os dois relevantes (`diff schema-h2.sql schema-postgresql.sql` na `main`):
+
+```diff
+- JOB_INSTANCE_ID BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,   (h2)
++ JOB_INSTANCE_ID BIGINT  NOT NULL PRIMARY KEY,                          (postgresql)
+- CREATE_TIME TIMESTAMP(9) NOT NULL,                                     (h2)
++ CREATE_TIME TIMESTAMP NOT NULL,                                        (postgresql)
+- SERIALIZED_CONTEXT LONGVARCHAR,                                        (h2)
++ SERIALIZED_CONTEXT TEXT,                                               (postgresql)
+- CREATE SEQUENCE BATCH_STEP_EXECUTION_SEQ;                              (h2)
++ CREATE SEQUENCE BATCH_STEP_EXECUTION_SEQ MAXVALUE 9223372036854775807 NO CYCLE;  (postgresql)
+```
+
+Tipos, estratégia de chave e sequências divergem. O Spring Boot escolhe o script pelo fabricante detectado (`spring.batch.jdbc.initialize-schema`, [Spring Boot how-to](https://docs.spring.io/spring-boot/how-to/data-initialization.html)). Isto é: **em H2 os testes exercitam um `JobRepository` com DDL diferente do de produção** — e o `JobRepository` é justamente onde mora o estado que a regra negocial do ciclo de vida do status depende.
+
+### 1.5 A mitigação clássica (`{vendor}`) e por que ela custa caro
+
+O Spring Boot oferece a saída oficial para conviver com dois bancos:
+
+> "You can also add a special `{vendor}` placeholder to use vendor-specific scripts. Assume the following: `spring.flyway.locations=classpath:db/migration/{vendor}`. Rather than using `db/migration`, the preceding configuration sets the directory to use according to the type of the database."
+> — [Spring Boot — Data Initialization](https://docs.spring.io/spring-boot/how-to/data-initialization.html)
+
+Funciona. O preço é: **duas árvores de migração mantidas em paralelo, para sempre**, para todos os schemas transacionais dos 5 produtos mais o schema de controle. E a árvore do H2 nunca é executada em produção — logo, o que os testes validam não é o schema que roda. É o pior dos dois mundos: o custo de manutenção do H2 **mais** a ausência de garantia.
+
+### 1.6 Custo real do Testcontainers no CI — medido
+
+Medições feitas neste ambiente (ARM64, Docker 29.5.2), que é o mesmo perfil de arquitetura dos runners `ubuntu-24.04-arm` do GitHub:
+
+**Subida com imagem já em cache local** (`postgres:18-alpine`, até o log `ready to accept connections`):
+
+```
+execução 1: 2,03 s
+execução 2: 1,48 s
+```
+
+**Pull a frio** (imagem removida antes):
+
+```
+postgres:17-alpine        pull = 5,20 s   (109 MB)
+minio/minio:latest        pull = 3,38 s   ( 54 MB)
+testcontainers/ryuk:0.11.0 pull = 2,42 s  ( 11 MB)
+```
+
+**MinIO até ficar pronto** (primeira inicialização, inclui bootstrap dos dados): **9,67 s**.
+
+Somando o pior caso de um job de CI limpo: ~11 s de pull (PostgreSQL + Ryuk) + ~2 s de subida ≈ **13 segundos de overhead**, uma vez por job, se o container for singleton. Com cache de imagens no runner, cai para ~2 s. Isso é ruído comparado ao tempo de um `mvn verify` de um monorepo com 8+ módulos.
+
+**Não é preciso Docker-in-Docker no GitHub Actions.** O Docker daemon já vem instalado na imagem dos runners hospedados, inclusive na ARM64:
+
+```
+Docker Client 28.0.4
+Docker Server 28.0.4
+Docker Compose 2.38.2
+Docker-Buildx 0.35.0
+```
+— [`actions/runner-images`, Ubuntu2404-Arm64-Readme.md](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Arm64-Readme.md)
+
+E os runners ARM64 (`ubuntu-24.04-arm`, `ubuntu-22.04-arm`) são gratuitos para repositórios públicos — *"Use of the standard GitHub-hosted runners is free and unlimited on public repositories"* ([GitHub Docs — GitHub-hosted runners](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)). Confirmando o ponto pelo lado da ausência: o repositório do Testcontainers documenta padrões de DinD para CircleCI, GitLab, Tekton, Drone, Bitbucket e AWS CodeBuild — [`docs/supported_docker_environment/continuous_integration/`](https://github.com/testcontainers/testcontainers-java/tree/main/docs/supported_docker_environment/continuous_integration) — e **não tem uma página para GitHub Actions**, porque lá funciona sem configuração.
+
+### 1.7 Reuso de container: não serve para CI (e a doc diz isso)
+
+Este é o ponto onde a intuição costuma errar. A feature `withReuse(true)` existe, mas:
+
+> "Reusable containers are **not suited for CI usage** and as an experimental feature not all Testcontainers features are fully working (e.g., resource cleanup or networking)."
+> "Those containers won't stop after all tests are finished."
+> "Reusable Containers is still an experimental feature and the behavior can change."
+> — [testcontainers-java, `docs/features/reuse.md`](https://github.com/testcontainers/testcontainers-java/blob/main/docs/features/reuse.md)
+
+Além disso, o reuso **não pode ser ligado pelo classpath**: exige `TESTCONTAINERS_REUSE_ENABLE=true` no ambiente ou `testcontainers.reuse.enable=true` em `~/.testcontainers.properties` (mesma fonte). Em runner efêmero isso não faz diferença nenhuma, porque a máquina morre a cada job.
+
+**O que realmente reduz o custo em CI é o padrão singleton** — um container estático iniciado uma vez e compartilhado por todas as classes de teste:
+
+```java
+abstract class AbstractContainerBaseTest {
+    static final PostgreSQLContainer<?> POSTGRES;
+    static { POSTGRES = new PostgreSQLContainer<>(...); POSTGRES.start(); }
+}
+```
+— [testcontainers-java, `docs/test_framework_integration/manual_lifecycle_control.md`](https://github.com/testcontainers/testcontainers-java/blob/main/docs/test_framework_integration/manual_lifecycle_control.md), que registra: *"The Testcontainers core's Ryuk container manages the stopping of these singleton containers at the end of the test suite."*
+
+Risco operacional a registrar: **rate limit do Docker Hub**. *"As of November 2020 Docker Hub pulls are rate limited. As Testcontainers uses Docker Hub for standard images, some users may hit these rate limits."* ([image_registry_rate_limiting.md](https://github.com/testcontainers/testcontainers-java/blob/main/docs/supported_docker_environment/image_registry_rate_limiting.md)). Mitigação: fixar tags imutáveis (nunca `latest`) e, se doer, espelhar as imagens em um registry próprio.
+
+### 1.8 Integração com Spring Boot
+
+O `spring-boot-testcontainers` elimina o boilerplate de `@DynamicPropertySource`. Basta anotar o campo do container:
+
+```java
+@Container @ServiceConnection
+static final PostgreSQLContainer<?> postgres = ...;
+```
+
+> "By using the `@ServiceConnection` annotation on a container field, connection details are automatically created for services running in Testcontainers. This feature requires the `spring-boot-testcontainers` module."
+> — [Spring Boot — testing/testcontainers.adoc](https://github.com/spring-projects/spring-boot/blob/main/documentation/spring-boot-docs/src/docs/antora/modules/reference/pages/testing/testcontainers.adoc)
+
+A anotação vive em `org.springframework.boot.testcontainers.service.connection` ([ServiceConnection.java](https://github.com/spring-projects/spring-boot/blob/main/core/spring-boot-testcontainers/src/main/java/org/springframework/boot/testcontainers/service/connection/ServiceConnection.java)) e cobre bancos JDBC/R2DBC, Kafka, RabbitMQ, MongoDB, Neo4j, Redis e coletores de observabilidade.
+
+Alternativa mais leve, sem escrever código de container: a URL JDBC `jdbc:tc:postgresql:18-alpine:///scheduler` faz o Testcontainers subir o container a partir da própria connection string ([jdbc.md](https://github.com/testcontainers/testcontainers-java/blob/main/docs/modules/databases/jdbc.md)). Credenciais padrão do `PostgreSQLContainer` são `test/test/test` ([PostgreSQLContainer.java](https://github.com/testcontainers/testcontainers-java/blob/main/modules/postgresql/src/main/java/org/testcontainers/postgresql/PostgreSQLContainer.java)).
+
+### 1.9 Trade-off, com critério de decisão
+
+| | **H2 `MODE=PostgreSQL`** | **Testcontainers + `postgres:18-alpine`** |
+|---|---|---|
+| Overhead por job de CI | ~0 s | **~2 s morno / ~13 s a frio** (medido) |
+| Requer Docker no runner | não | sim — **já disponível** no `ubuntu-24.04-arm` |
+| `jsonb` com semântica correta | **não** (vira `json`, grava valor diferente **sem erro**) | sim |
+| `ON CONFLICT (cols) DO UPDATE` | **não** | sim |
+| `->>`, `@>`, `jsonb_*` | **não** | sim |
+| `RETURNING`, `text[]`, índice GIN, particionamento, plpgsql, extensões | **não** | sim |
+| DDL do `JobRepository` idêntico à produção | **não** (`schema-h2.sql` ≠ `schema-postgresql.sql`) | sim |
+| Migrações Flyway | exige árvore `{vendor}` duplicada | uma árvore só |
+| Plano de execução / índices / concorrência realistas | não | sim |
+
+**Critério de decisão.** H2 só se sustenta se **todas** estas forem verdadeiras: (a) nenhuma coluna `jsonb` em schema nenhum; (b) nenhum upsert `ON CONFLICT ... DO UPDATE`; (c) nenhum `RETURNING`, array, índice GIN, função nativa ou extensão; (d) aceitar que o `JobRepository` testado tem DDL diferente do de produção; (e) o runner de CI não puder rodar Docker.
+
+Neste projeto, (a) já é improvável — "estrutura com os dados não estruturados" pede `jsonb`. E (b) é praticamente certo: a regra *"A combinação de data de referência e código do relatório é única. Uma nova execução para um par já processado com sucesso é rejeitada"* combinada com `forcar_reprocessamento` é um upsert com precondição — o idioma natural é `ON CONFLICT (data_referencia, codigo_relatorio) DO UPDATE ... WHERE`. E (e) é falsa: o Docker está lá.
+
+---
+
+## 2. JUnit 5 + Cucumber
+
+### 2.1 Dependências
+
+`io.cucumber` não está no BOM do Spring Boot; importe o `cucumber-bom` (7.34.6) e declare:
+
+- `io.cucumber:cucumber-java` — anotações de step
+- `io.cucumber:cucumber-junit-platform-engine` — o engine ([release notes v5.0.0](https://github.com/cucumber/cucumber-jvm/blob/main/release-notes/v5.0.0.md))
+- `io.cucumber:cucumber-spring` — injeção do contexto Spring ([cucumber-spring/README.md](https://github.com/cucumber/cucumber-jvm/blob/main/cucumber-spring/README.md))
+- `org.junit.platform:junit-platform-suite` — necessário para a `@Suite` ([cucumber-junit-platform-engine/README.md](https://github.com/cucumber/cucumber-jvm/blob/main/cucumber-junit-platform-engine/README.md))
+
+### 2.2 Runner via JUnit Platform Suite
+
+```java
+@Suite
+@IncludeEngines("cucumber")
+@SelectPackages("com.example.features")
+@ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "com.example.stepdefs")
+@ConfigurationParameter(key = PLUGIN_PROPERTY_NAME, value = "pretty, html:target/cucumber-reports.html")
+@ConfigurationParameter(key = FILTER_TAGS_PROPERTY_NAME, value = "@smoke and not @wip")
+public class RunCucumberTest { }
+```
+— [cucumber-jvm docs](https://github.com/cucumber/cucumber-jvm/blob/main/cucumber-junit-platform-engine/README.md)
+
+Detalhe de implementação que importa na organização dos arquivos: tanto `@SelectPackages` quanto `@SelectClasspathResource` passam pelo mesmo filtro que só aceita recursos terminados em `.feature` ([`DiscoverySelectorResolver.java`](https://github.com/cucumber/cucumber-jvm/blob/main/cucumber-junit-platform-engine/src/main/java/io/cucumber/junit/platform/engine/DiscoverySelectorResolver.java)); `@SelectClasspathResource` apontando para diretório cai no caminho de *package scanning* já depreciado ([`FeatureFileResolver.java`](https://github.com/cucumber/cucumber-jvm/blob/main/cucumber-junit-platform-engine/src/main/java/io/cucumber/junit/platform/engine/FeatureFileResolver.java)). **Prefira `@SelectPackages`.**
+
+### 2.3 Ligação com Spring Boot
+
+Uma única classe no glue path, anotada com `@CucumberContextConfiguration` mais as anotações de teste do Spring:
+
+```java
+@CucumberContextConfiguration
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class CucumberSpringConfiguration { }
+```
+
+> "To configure the test application context, annotate a configuration class on the glue path with `@CucumberContextConfiguration` along with Spring testing annotations like `@ContextConfiguration`, `@ContextHierarchy`, `@BootstrapWith`, or `@SpringBootTest`."
+> — [cucumber-spring/README.md](https://github.com/cucumber/cucumber-jvm/blob/main/cucumber-spring/README.md)
+
+Estado entre steps do mesmo cenário: um bean `@ScenarioScope` (do `io.cucumber.spring`) em vez de campo estático — evita vazamento entre cenários e é pré-requisito para execução paralela.
+
+### 2.4 Separar aceitação de integração
+
+O requisito é *"Gherkin para todo comportamento observável pelo negócio (aceitação e integração, inclusive a Coleta)"*. A separação sai de **tags**, não de duplicação de `.feature`:
+
+- `cucumber.filter.tags` aceita expressão de tags e combina com `cucumber.filter.name` por *and* ([README do engine](https://github.com/cucumber/cucumber-jvm/blob/main/cucumber-junit-platform-engine/README.md)).
+- Duas classes `@Suite` no mesmo conjunto de `.feature`, uma com `@aceitacao` e outra com `@integracao`, ligadas a fases distintas do Maven (`test` vs `verify`).
+
+Paralelismo e isolamento, via `junit-platform.properties`:
+
+```properties
+cucumber.execution.parallel.enabled=true
+cucumber.execution.parallel.config.strategy=dynamic
+cucumber.execution.parallel.config.dynamic.factor=1.0
+cucumber.junit-platform.naming-strategy=long
+cucumber.glue=com.example.stepdefs
+# cenários marcados @isolated rodam sozinhos (ex.: os que truncam tabelas)
+cucumber.execution.exclusive-resources.isolated.read-write=org.junit.platform.engine.support.hierarchical.ExclusiveResource.GLOBAL_KEY
+```
+— [cucumber-jvm, configuração do JUnit Platform](https://github.com/cucumber/cucumber-jvm/blob/main/cucumber-junit-platform-engine/README.md)
+
+O `exclusive-resources` é a peça que faz paralelismo conviver com um **único** container PostgreSQL singleton: cenários que mexem em estado global ganham `@isolated`, o resto roda em paralelo.
+
+### 2.5 Interação com o requisito "OTel desabilitado nos testes"
+
+A regra arquitetural diz que o SDK do OpenTelemetry fica desabilitado nos testes. A seção 5 da análise comportamental já apontou a consequência: sem span ativo, o MDC fica vazio e todo cenário Gherkin que valide o Correlation ID na mensagem de erro falha. Isso é decisão do ticket de observabilidade, mas **restringe esta stack**: ou o Correlation ID tem fallback próprio, ou os cenários de erro não podem asserir sobre ele.
+
+---
+
+## 3. Testar Spring Batch
+
+### 3.1 Atenção: a API mudou no Spring Batch 6
+
+O ticket cita `JobLauncherTestUtils`. Isso está correto **para o Spring Batch 5.x** ([docs 5.2 — testing](https://docs.spring.io/spring-batch/reference/5.2/testing.html)), mas o BOM do Spring Boot 4.1.0 traz **Spring Batch 6.0.4**, e a documentação da `main` usa `JobOperatorTestUtils`:
+
+```java
+@SpringBatchTest
+@SpringJUnitConfig(SkipSampleConfiguration.class)
+public class SkipSampleFunctionalTests {
+
+    @Autowired private JobOperatorTestUtils jobOperatorTestUtils;
+
+    @Test
+    public void testJob(@Autowired Job job) throws Exception {
+        this.jobOperatorTestUtils.setJob(job);
+        // ... popula o schema transacional ...
+        JobExecution jobExecution = jobOperatorTestUtils.startJob();
+        assertEquals("COMPLETED", jobExecution.getExitStatus().getExitCode());
+    }
+}
+```
+— [spring-batch, `testing.adoc`](https://github.com/spring-projects/spring-batch/blob/main/spring-batch-docs/modules/ROOT/pages/testing.adoc)
+
+Mapeamento: `JobLauncherTestUtils` → `JobOperatorTestUtils`; `launchJob()` → `startJob()`. **A spec precisa fixar a versão do Spring Batch antes de escrever exemplos**, senão o código nasce errado.
+
+### 3.2 O que `@SpringBatchTest` dá
+
+> "`@SpringBatchTest` injects Spring Batch test utilities (such as the `JobOperatorTestUtils` and `JobRepositoryTestUtils`) in the test context"
+
+e, desde a 4.1, *"the `StepScopeTestExecutionListener` and `JobScopeTestExecutionListener` are imported as test execution listeners"* — o que permite injetar beans `@StepScope` fora de um step ativo ([testing.adoc](https://github.com/spring-projects/spring-batch/blob/main/spring-batch-docs/modules/ROOT/pages/testing.adoc)).
+
+`JobRepositoryTestUtils` é a ferramenta para limpar metadados de execução entre cenários — essencial com container singleton compartilhado.
+
+### 3.3 Testar um job que lê do schema transacional e escreve no MinIO
+
+Composição recomendada, em três níveis:
+
+1. **Unitário de `ItemReader`/`ItemProcessor`/`ItemWriter`** — sem contexto Spring, com `MetaDataInstanceFactory.createStepExecution()` para os componentes `@StepScope` ([testing.adoc](https://github.com/spring-projects/spring-batch/blob/main/spring-batch-docs/modules/ROOT/pages/testing.adoc)).
+2. **`launchStep()` isolado** — valida um step por vez sem pagar o job inteiro.
+3. **End-to-end com dois containers** — `PostgreSQLContainer` (schema transacional + schema de controle + `JobRepository`) e `MinIOContainer`; arrange popula o transacional via `JdbcTemplate`, act chama `startJob(JobParameters)` com `data_referencia`/`codigo_relatorio`, assert lê o `.jrprint` e o `.csv.gz` de volta do MinIO e confere os metadados no schema de controle.
+
+O nível 3 é o único que cobre as regras negociais do ciclo de vida do status (precedência alerta × erro, timeout duro no dobro do tempo estimado, rejeição de par duplicado) — que são exatamente o "comportamento observável pelo negócio" que o documento exige em Gherkin. Ou seja: **os cenários Gherkin da Coleta obrigatoriamente atravessam banco + object storage reais.** Isso reforça a decisão da seção 1.
+
+---
+
+## 4. Newman (E2E de API) + `psql`
+
+O binário local é o **Newman 6.2.2** (o Postman CLI oficial não tem build ARM64; o Newman substitui bem).
+
+Invocação de CI, com relatório consumível pelo GitHub Actions:
+
+```bash
+newman run collections/scheduler.postman_collection.json \
+  --environment env/ci.postman_environment.json \
+  --reporters cli,junit \
+  --reporter-junit-export target/newman/report.xml
+```
+— formato documentado em [postmanlabs/newman README](https://github.com/postmanlabs/newman/blob/develop/README.md) e no [docker/README.md](https://github.com/postmanlabs/newman/blob/develop/docker/README.md)
+
+Opções relevantes:
+
+- `--bail` — interrompe na primeira falha de script de teste; aceita os modificadores `folder` e `failure` ([README](https://github.com/postmanlabs/newman/blob/develop/README.md)).
+- `--iteration-data data.csv` e `--iteration-count N` — os nomes atuais de `--data`/`--number` ([MIGRATION.md](https://github.com/postmanlabs/newman/blob/develop/MIGRATION.md)).
+- **Não** use `--suppress-exit-code` no CI: o exit code diferente de zero é o que reprova o job ([MIGRATION.md](https://github.com/postmanlabs/newman/blob/develop/MIGRATION.md)).
+
+**Asserções em banco com `psql`.** O `psql` 18.4 está no ambiente. O padrão que funciona é o Newman asserir o contrato HTTP e o `psql` asserir o efeito colateral:
+
+```bash
+psql "$DB_URL" -v ON_ERROR_STOP=1 -At -c \
+  "SELECT count(*) FROM controle.execucao_relatorio
+    WHERE data_referencia = DATE '2026-08-02' AND status = 'PROCESSADO_COM_SUCESSO'" \
+  | grep -qx '1'
+```
+
+`-v ON_ERROR_STOP=1` faz o `psql` retornar exit code diferente de zero em erro de SQL — sem isso o script segue verde após uma query quebrada.
+
+**Sobreposição a reconhecer:** Newman+`psql` e Cucumber de integração testam quase a mesma coisa. O documento pede as duas. Delimitação sugerida: **Cucumber** é a autoridade sobre regra de negócio (é ele que carrega o Gherkin); **Newman** é o smoke test do ambiente montado — cobre o que só existe depois do `docker compose up`: Traefik, TLS, Keycloak emitindo JWT de verdade, CORS, o contrato de erro RFC 7807. Isso evita duplicar a suíte inteira em duas linguagens.
+
+---
+
+## 5. Playwright (E2E de navegador, ARM64)
+
+**Suporte oficial a ARM64 confirmado.** Requisitos de sistema atuais: Node.js 22.x/24.x/26.x; Windows 11+/Windows Server 2019+; macOS 14+; **Debian 12/13 ou Ubuntu 22.04/24.04/26.04, em x86-64 *e* arm64** ([intro-js.md](https://github.com/microsoft/playwright/blob/main/docs/src/intro-js.md)). O suporte a Ubuntu ARM64 existe desde a 1.17 e foi ampliado na 1.24 ([release notes](https://github.com/microsoft/playwright/blob/main/docs/src/release-notes-java.md)). O ambiente é Ubuntu 24.04 arm64 — dentro da matriz suportada.
+
+**Reaproveitar o Chromium já instalado.** O ambiente tem `PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright`. É o mecanismo oficial:
+
+```bash
+PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright npx playwright test
+```
+— [browsers.md](https://github.com/microsoft/playwright/blob/main/docs/src/browsers.md), que também lista os caches padrão (`~/.cache/ms-playwright` no Linux) para quem for cachear no CI.
+
+**No CI**, instalar só o necessário:
+
+```bash
+npx playwright install chromium --with-deps
+```
+> "Instead of installing all browsers ... Install only Chromium"
+> — [best-practices-js.md](https://github.com/microsoft/playwright/blob/main/docs/src/best-practices-js.md)
+
+**Restrições a registrar:**
+
+- **Alpine/musl não é suportado.** *"Browser builds for Firefox and WebKit are built for the glibc library. Alpine Linux and other distributions that are based on the musl standard library are not supported."* ([docker.md](https://github.com/microsoft/playwright/blob/main/docs/src/docker.md)). Se a imagem do runner de E2E for Alpine, o E2E de navegador não sobe.
+- Rodando em container, use `--ipc=host` — recomendado pela própria doc para evitar falta de memória no Chromium ([docker.md](https://github.com/microsoft/playwright/blob/main/docs/src/docker.md)).
+- A imagem oficial `mcr.microsoft.com/playwright:v<versão>-noble` é a alternativa se preferir não gerenciar dependências de sistema.
+
+**Escopo sugerido:** o Playwright deve cobrir só o que exige navegador de verdade — o fluxo de login redirecionado ao Keycloak com o tema customizado, o drop-down `dd/MM/yyyy → produto → código`, a vinculação de roles a grupos, o download do binário exportado, e o botão "copiar erro em JSON". Regra de negócio pura fica no Cucumber, que é ordens de grandeza mais barato.
+
+---
+
+## 6. MinIO em teste
+
+Três opções, com custo e fidelidade diferentes:
+
+| Opção | Fidelidade | Custo | Fonte |
+|---|---|---|---|
+| **`MinIOContainer` (Testcontainers)** | alta — MinIO de verdade, mesma engine da produção | 9,67 s na primeira subida (medido); singleton amortiza | [módulo MinIO](https://java.testcontainers.org/modules/minio/) |
+| `LocalStackContainer` (S3 emulado) | média — emulação de S3 da AWS, não é MinIO | imagem grande (~1,7 GB local) | [módulo localstack](https://github.com/testcontainers/testcontainers-java/tree/main/modules/localstack) |
+| Stub S3 em memória / mock do client | baixa — não testa serialização, retenção, credenciais | ~0 s | — |
+
+O módulo MinIO existe oficialmente ([`modules/minio`](https://github.com/testcontainers/testcontainers-java/tree/main/modules/minio)) e o artefato 2.x é `org.testcontainers:testcontainers-minio:2.0.5`:
+
+```java
+MinIOContainer container = new MinIOContainer("minio/minio:RELEASE.2023-09-04T19-57-37Z")
+        .withUserName("testuser").withPassword("testpassword");
+
+MinioClient client = MinioClient.builder()
+        .endpoint(container.getS3URL())
+        .credentials(container.getUserName(), container.getPassword())
+        .build();
+```
+— [java.testcontainers.org/modules/minio](https://java.testcontainers.org/modules/minio/)
+
+**Por que o stub não serve aqui.** O que precisa ser testado não é "chamei o `putObject`". É: o `.jrprint` serializado volta e **desserializa** corretamente (o trade-off de serialização Java nativa e o `ClassNotFoundException` dos renderers); o `.csv.gz` volta descompactável; o `.jrprint` e o `.csv.gz` expiram **juntos**; a API só lê e os processadores só escrevem (credenciais separadas, recomendação da seção 4 da análise); e o "download de item expirado" retorna 404 semântico. Nada disso é observável contra um mock.
+
+**Reusar o container do Compose em vez de Testcontainers?** Funciona para o E2E do Newman/Playwright, onde o `docker compose up` já é parte do cenário. Para teste de integração de módulo é pior: acopla a suíte a um serviço externo com estado compartilhado entre execuções, e quebra o `mvn verify` de quem esqueceu de subir o Compose. **Testcontainers para integração, Compose para E2E.**
+
+---
+
+## 7. JaCoCo — agregação e metas
+
+**Agregação em monorepo multi-módulo.** O goal existe e é feito exatamente para isso:
+
+> "The `report-aggregate` goal generates a comprehensive code coverage report in HTML, XML, and CSV formats by aggregating data from multiple projects within a Maven reactor. It collects class and source files, along with JaCoCo execution data, from dependent projects and optionally the current project. This is particularly useful for scenarios like **integration tests where tests reside in separate projects from the code under test**."
+> — [jacoco:report-aggregate](https://www.jacoco.org/jacoco/trunk/doc/report-aggregate-mojo.html)
+
+Padrão: um módulo `coverage` (ou `report-aggregate`) que declara como dependência todos os módulos a medir e roda só o `report-aggregate`.
+
+**Metas por camada** saem do goal `check`, que liga por padrão na fase `verify` e aceita regras por `BUNDLE`, `PACKAGE`, `CLASS`, `SOURCEFILE` ou `METHOD`, com limites sobre `INSTRUCTION`, `LINE`, `BRANCH`, `COMPLEXITY`, `METHOD` ou `CLASS`:
+
+```xml
+<rules>
+  <rule>
+    <element>BUNDLE</element>
+    <limits>
+      <limit><counter>INSTRUCTION</counter><value>COVEREDRATIO</value><minimum>0.80</minimum></limit>
+      <limit><counter>CLASS</counter><value>MISSEDCOUNT</value><maximum>0</maximum></limit>
+    </limits>
+  </rule>
+</rules>
+```
+> "`<haltOnFailure>` (boolean) - Required - Halt the build if any of the checks fail. Default value is `true`."
+> — [jacoco:check](https://www.jacoco.org/jacoco/trunk/doc/check-mojo.html)
+
+Regras podem ter `<excludes>` (ex.: `*Test`) e o mínimo aceita percentual (`80%` ≡ `0.80`) — mesma fonte.
+
+**Armadilha específica desta stack:** o Cucumber roda pelo JUnit Platform Suite, então o agente do JaCoCo precisa estar ativo na JVM que executa a suíte — normalmente o `failsafe` na fase `verify`, não só o `surefire`. Use `prepare-agent-integration` + `report-integration` e agregue os dois `.exec`; caso contrário a cobertura vinda dos cenários Gherkin some do relatório.
+
+**Sobre a meta.** Metas por camada só fazem sentido se forem diferentes: domínio/regra de negócio alto (≥80% de branch), adaptadores de I/O médio, DTOs/config excluídos. Uma meta única de 80% no `BUNDLE` agregado premia o módulo que tem muito código trivial e esconde a regra de negócio descoberta.
+
+---
+
+## Recomendação
+
+**1. Substituir o H2 por Testcontainers com PostgreSQL. Alterar a Tech Stack.**
+A linha `Testes de Integração (JUnit 5 + Cucumber + H2 em modo PostgreSQL + Flyway)` de `docs/descricao-inicial.md` deve virar `JUnit 5 + Cucumber + Testcontainers (PostgreSQL) + Flyway`. Justificativa medida, não teórica: o H2 aceita `CREATE TABLE ... jsonb` sem erro, converte a coluna para `json` e grava um valor **diferente** do PostgreSQL para o mesmo INSERT, sem nenhum sinal de falha (seção 1.3); `ON CONFLICT (cols) DO UPDATE` — idioma natural da regra de unicidade `data_referencia + codigo_relatorio` — não compila (1.2); e o `JobRepository` testado teria DDL diferente do de produção, por construção do próprio Spring Batch (1.4). O custo alegado não se confirma: **~2 s morno, ~13 s a frio**, medido em ARM64, sem Docker-in-Docker, em runner gratuito para repositório público (1.6). O reuso de container não é a resposta — a doc do Testcontainers diz explicitamente que não serve para CI (1.7); a resposta é o **singleton container** mais `@ServiceConnection`.
+
+**2. Se ainda assim quiser H2, mantenha-o como tier separado e declare o risco.**
+Opção defensável: H2 para uma camada de teste rápida de repositório (feedback em segundos, desenvolvedor sem Docker), Testcontainers como gate obrigatório no CI. Só que isso exige `spring.flyway.locations=classpath:db/migration/{vendor}` com **duas árvores de migração mantidas para sempre** (1.5), e a árvore do H2 nunca roda em produção. Critério objetivo para escolher esse caminho: só se o tempo de `mvn verify` com Testcontainers passar de ~10 minutos. Hoje não há evidência disso.
+
+**3. Um único container PostgreSQL singleton por módulo, paralelismo por tag.**
+`@SpringBatchTest` + `JobRepositoryTestUtils` limpam metadados entre cenários; `cucumber.execution.exclusive-resources.isolated.read-write` isola os cenários que truncam tabelas; o resto roda em paralelo (2.4, 3.2).
+
+**4. Fixe as versões antes de escrever qualquer exemplo na spec.**
+Herde tudo do BOM do Spring Boot (Jupiter **6.0.3**, Spring Batch **6.0.4**, Testcontainers **2.0.5**, Flyway **12.4.0**) e importe o `cucumber-bom` **7.34.6** à parte. Dois erros já embutidos no ticket: `JobLauncherTestUtils` virou **`JobOperatorTestUtils`** no Spring Batch 6 (3.1) e os módulos do Testcontainers 2.x se chamam **`testcontainers-postgresql` / `testcontainers-minio`** (Sumário).
+
+**5. MinIO: `MinIOContainer` para integração, container do Compose para E2E, stub nunca.**
+O que precisa ser provado — round-trip de desserialização do `.jrprint`, expiração casada de `.jrprint` + `.csv.gz`, credenciais write-only/read-only — não é observável contra mock (seção 6).
+
+**6. Delimite Newman e Cucumber para não escrever a mesma suíte duas vezes.**
+Cucumber é a autoridade sobre regra de negócio (carrega o Gherkin exigido pelo documento). Newman + `psql -v ON_ERROR_STOP=1` é smoke test do ambiente montado: Traefik, TLS, JWT real do Keycloak, contrato de erro (seção 4).
+
+**7. Playwright só no que exige navegador.** Login redirecionado ao Keycloak, drop-down `dd/MM/yyyy → produto → código`, vinculação de roles a grupos, download do binário, botão de copiar erro. Reaproveite `PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright`; não use imagem base Alpine (seção 5).
+
+**8. JaCoCo: módulo agregador com `report-aggregate`, `check` na `verify` com metas diferentes por camada**, e o agente precisa estar ativo no `failsafe` — senão a cobertura dos cenários Gherkin não entra na conta (seção 7).
+
+### Pontos que ficam abertos para outros tickets
+
+- O Correlation ID com o SDK do OTel desabilitado nos testes precisa de fallback, senão nenhum cenário Gherkin pode asserir sobre a mensagem de erro (2.5) — pertence ao ticket de observabilidade.
+- O teste que deve **falhar** na substituição de fonte (`net.sf.jasperreports.awt.ignore.missing.font=false`) está listado em `map.md` como dependente desta decisão; agora destravado.
+- Rate limit do Docker Hub: fixar tags imutáveis e avaliar registry espelho (1.7) — pertence ao ticket de CI.
+- Meta numérica de cobertura por camada: depende da definição da arquitetura interna de cada módulo.

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.1.0</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>br.com.relatorios</groupId>
+  <artifactId>relatorios-parent</artifactId>
+  <version>${revision}</version>
+  <packaging>pom</packaging>
+  <name>Scheduler Jasper Report</name>
+
+  <modules>
+    <module>relatorios-comum</module>
+    <module>relatorios-processador-starter</module>
+    <module>relatorios-api</module>
+    <module>relatorios-processador-poupanca</module>
+    <module>relatorios-processador-cliente</module>
+    <module>relatorios-processador-contacorrente</module>
+    <module>relatorios-processador-consorcio</module>
+    <module>relatorios-processador-emprestimo</module>
+    <module>relatorios-web</module>
+    <module>cobertura</module>
+  </modules>
+
+  <properties>
+    <!-- Versão única do monorepo (regra da descrição inicial). Materializada
+         nos artefatos instalados pelo flatten-maven-plugin. -->
+    <revision>0.1.0-SNAPSHOT</revision>
+
+    <java.version>25</java.version>
+    <maven.compiler.release>25</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- PISO DE SEGURANÇA, não preferência. A 7.0.6 e anteriores têm o RCE de
+         desserialização CVE-2026-6009, e desserializar .jrprint é o coração do
+         sistema (ADR 0002). Hoje 7.0.7 é também a versão mais recente. -->
+    <jasperreports.version>7.0.7</jasperreports.version>
+
+    <jacoco.version>0.8.15</jacoco.version>
+    <flatten.version>1.8.0</flatten.version>
+    <enforcer.version>3.5.0</enforcer.version>
+    <frontend.version>2.0.2</frontend.version>
+    <node.version>v24.16.0</node.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>net.sf.jasperreports</groupId>
+        <artifactId>jasperreports</artifactId>
+        <version>${jasperreports.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>br.com.relatorios</groupId>
+        <artifactId>relatorios-comum</artifactId>
+        <version>${revision}</version>
+      </dependency>
+      <dependency>
+        <groupId>br.com.relatorios</groupId>
+        <artifactId>relatorios-processador-starter</artifactId>
+        <version>${revision}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>com.github.eirslett</groupId>
+          <artifactId>frontend-maven-plugin</artifactId>
+          <version>${frontend.version}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <version>${flatten.version}</version>
+        <configuration>
+          <updatePomFile>true</updatePomFile>
+          <flattenMode>resolveCiFriendliesOnly</flattenMode>
+        </configuration>
+        <executions>
+          <execution>
+            <id>flatten</id><phase>process-resources</phase><goals><goal>flatten</goal></goals>
+          </execution>
+          <execution>
+            <id>flatten-clean</id><phase>clean</phase><goals><goal>clean</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>${enforcer.version}</version>
+        <executions>
+          <execution>
+            <id>versao-unica-do-jasper</id>
+            <goals><goal>enforce</goal></goals>
+            <configuration>
+              <rules>
+                <!-- IMPOSIÇÃO DE VERSÃO ÚNICA, NÃO DE VERSÃO MÍNIMA.
+                     São coisas diferentes e é fácil supor que uma cobre a outra:
+
+                     - Esta regra impede que dois módulos usem versões DIFERENTES do
+                       Jasper. Isso importa porque JRConstants.SERIAL_VERSION_UID é a
+                       constante fixa 10200 em todas as versões, então leitura cruzada
+                       de .jrprint falha em SILÊNCIO — sem InvalidClassException.
+
+                     - Um gate de versão MÍNIMA (falhar abaixo de 7.0.7) foi decidido
+                       como NÃO existente no ADR 0002: a atualização é manual. Não
+                       procure por ele aqui; ele não está em lugar nenhum. -->
+                <dependencyConvergence/>
+                <requireMavenVersion><version>[3.6.3,)</version></requireMavenVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.version}</version>
+        <executions>
+          <execution>
+            <id>prepare-agent</id><goals><goal>prepare-agent</goal></goals>
+          </execution>
+          <execution>
+            <id>report</id><phase>verify</phase><goals><goal>report</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

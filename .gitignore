@@ -57,3 +57,9 @@ replay_pid*
 
 # Claude Code - configuracao pessoal (nao versionar)
 .claude/settings.local.json
+
+# Esqueleto Maven multi-modulo (ticket 33)
+.flattened-pom.xml
+**/node
+**/node_modules
+relatorios-web/src/main/frontend/dist/

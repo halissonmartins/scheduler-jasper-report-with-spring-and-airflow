@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CLIENTE-0001 — Base Cadastral Completa.
+
+  GRADE COMUM (ticket 22): mesmas coordenadas x e larguras em todas as bandas.
+  Colunas: 0/60  60/180  240/95  335/70  405/60  465/40  505/85  590/100  690/60  750/52
+
+  Diferente de POUPANCA-0001, este relatório NÃO recorta pela Data de Referência:
+  ele é a fotografia da base inteira no dia. O volume não varia com a data, o que
+  faz o limiar de +20% do ticket 24 funcionar especialmente bem aqui.
+-->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+                                  http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="CLIENTE-0001"
+              pageWidth="842" pageHeight="595" orientation="Landscape"
+              columnWidth="802" leftMargin="20" rightMargin="20"
+              topMargin="20" bottomMargin="20">
+
+    <parameter name="DATA_REFERENCIA" class="java.time.LocalDate"/>
+    <parameter name="LOGO" class="java.io.InputStream" isForPrompting="false"/>
+
+    <field name="clienteId"     class="java.lang.Long"/>
+    <field name="nome"          class="java.lang.String"/>
+    <field name="cpfCnpj"       class="java.lang.String"/>
+    <field name="tipoPessoa"    class="java.lang.String"/>
+    <field name="situacao"      class="java.lang.String"/>
+    <field name="uf"            class="java.lang.String"/>
+    <field name="municipio"     class="java.lang.String"/>
+    <field name="contato"       class="java.lang.String"/>
+    <field name="segmento"      class="java.lang.String"/>
+    <field name="score"         class="java.lang.Short"/>
+
+    <variable name="totalClientes" class="java.lang.Long" calculation="Count">
+        <variableExpression><![CDATA[$F{clienteId}]]></variableExpression>
+    </variable>
+
+    <group name="Uf">
+        <groupExpression><![CDATA[$F{uf}]]></groupExpression>
+        <groupHeader>
+            <band height="18">
+                <textField>
+                    <reportElement x="0" y="0" width="405" height="18"/>
+                    <textElement><font size="10" isBold="true"/></textElement>
+                    <textFieldExpression><![CDATA["UF " + $F{uf}]]></textFieldExpression>
+                </textField>
+            </band>
+        </groupHeader>
+    </group>
+
+    <title>
+        <band height="46">
+            <image>
+                <reportElement x="0" y="0" width="80" height="40"/>
+                <imageExpression><![CDATA[$P{LOGO}]]></imageExpression>
+            </image>
+            <staticText>
+                <reportElement x="90" y="4" width="500" height="20"/>
+                <textElement><font size="14" isBold="true"/></textElement>
+                <text><![CDATA[Base Cadastral Completa]]></text>
+            </staticText>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="90" y="24" width="200" height="14"/>
+                <textElement><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$P{DATA_REFERENCIA}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="18">
+            <staticText><reportElement x="0"   y="0" width="60"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Código]]></text></staticText>
+            <staticText><reportElement x="60"  y="0" width="180" height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Nome]]></text></staticText>
+            <staticText><reportElement x="240" y="0" width="95"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[CPF/CNPJ]]></text></staticText>
+            <staticText><reportElement x="335" y="0" width="70"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Tipo de Pessoa]]></text></staticText>
+            <staticText><reportElement x="405" y="0" width="60"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Situação]]></text></staticText>
+            <staticText><reportElement x="465" y="0" width="40"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[UF]]></text></staticText>
+            <staticText><reportElement x="505" y="0" width="85"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Município]]></text></staticText>
+            <staticText><reportElement x="590" y="0" width="100" height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Contato Principal]]></text></staticText>
+            <staticText><reportElement x="690" y="0" width="60"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Segmento]]></text></staticText>
+            <staticText><reportElement x="750" y="0" width="52"  height="18"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Score]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="14">
+            <textField><reportElement x="0"   y="0" width="60"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{clienteId}]]></textFieldExpression></textField>
+            <textField><reportElement x="60"  y="0" width="180" height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{nome}]]></textFieldExpression></textField>
+            <textField><reportElement x="240" y="0" width="95"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{cpfCnpj}]]></textFieldExpression></textField>
+            <textField><reportElement x="335" y="0" width="70"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{tipoPessoa}]]></textFieldExpression></textField>
+            <textField><reportElement x="405" y="0" width="60"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{situacao}]]></textFieldExpression></textField>
+            <textField><reportElement x="465" y="0" width="40"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{uf}]]></textFieldExpression></textField>
+            <textField><reportElement x="505" y="0" width="85"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{municipio}]]></textFieldExpression></textField>
+            <textField><reportElement x="590" y="0" width="100" height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{contato}]]></textFieldExpression></textField>
+            <textField><reportElement x="690" y="0" width="60"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{segmento}]]></textFieldExpression></textField>
+            <textField><reportElement x="750" y="0" width="52"  height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{score}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+
+    <summary>
+        <band height="20">
+            <staticText>
+                <reportElement x="405" y="0" width="285" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <text><![CDATA[Total de clientes]]></text>
+            </staticText>
+            <textField pattern="#,##0">
+                <reportElement x="690" y="0" width="112" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{totalClientes}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+</jasperReport>

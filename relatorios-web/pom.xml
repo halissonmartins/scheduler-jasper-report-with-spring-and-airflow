@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>br.com.relatorios</groupId>
+    <artifactId>relatorios-parent</artifactId>
+    <version>${revision}</version>
+  </parent>
+  <artifactId>relatorios-web</artifactId>
+  <packaging>jar</packaging>
+  <name>Frontend</name>
+  <description>
+    Integração do frontend ao reactor via frontend-maven-plugin, com nodeVersion fixado
+    (suporta arm64). O que está provado aqui é a INTEGRAÇÃO — Node baixado, build
+    executado, saída empacotada. O app Angular em si não existe: a arquitetura interna
+    do frontend está na névoa do mapa, e o protótipo do ticket 32 respondeu como as
+    telas se comportam, não como o frontend se organiza.
+  </description>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <configuration>
+          <workingDirectory>src/main/frontend</workingDirectory>
+          <nodeVersion>${node.version}</nodeVersion>
+        </configuration>
+        <executions>
+          <execution>
+            <id>instalar-node</id>
+            <goals><goal>install-node-and-npm</goal></goals>
+          </execution>
+          <execution>
+            <id>npm-build</id>
+            <goals><goal>npm</goal></goals>
+            <configuration><arguments>run build</arguments></configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>empacotar-dist</id>
+            <phase>process-classes</phase>
+            <goals><goal>copy-resources</goal></goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
+              <resources>
+                <resource><directory>src/main/frontend/dist</directory></resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

@@ -1,0 +1,35 @@
+<!doctype html>
+<!--
+  PROTÓTIPO DESCARTÁVEL — ticket 32.
+  HTML/CSS/JS puros, sem backend, dados de mentira. Abre por duplo clique (file://).
+  Serve para reagir, não para reaproveitar.
+
+  Telas:     ?tela=disponiveis | sem-acesso | vinculacao | pendentes | erro
+  Variantes: ?variant=A | B | C   (só na tela "disponiveis"; setas ← → alternam)
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Protótipo — Scheduler Jasper Report</title>
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+  <header class="topo">
+    <h1>Relatórios</h1>
+    <span class="sub" style="margin:0">
+      Pendentes de vínculo <span class="contador">0</span>
+    </span>
+    <span class="quem">marina.alves · GERENTE</span>
+    <!-- As duas saídas da aplicação. Levam para o Keycloak, não para outra tela daqui. -->
+    <button class="saida" onclick="alert('Vai para o Account Console do Keycloak.\n\nOutra origem, outra navegação — e precisa existir caminho de volta.')">Trocar senha</button>
+    <button class="saida" onclick="alert('RP-initiated logout.\n\nRedireciona para o end_session_endpoint e volta.\nNão é um botão que limpa a tela — é uma ida e volta.')">Sair</button>
+  </header>
+
+  <main></main>
+
+  <script src="dados.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

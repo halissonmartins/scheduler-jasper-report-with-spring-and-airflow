@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CONTACORRENTE-0001 — Resumo Diário por Conta.
+
+  É o Relatório de MAIOR volume do mapa, e a razão de ele ser resumo e não
+  detalhe está registrada no ticket 42: quem limita o tamanho de um Relatório é
+  o heap da EXPORTAÇÃO (ticket 21), não o tempo da Coleta. Uma linha por conta
+  mantém o volume alto e o `.jrprint` exportável — e "todo lançamento de todas
+  as contas" seria extração de dados, não relatório.
+
+  GRADE COMUM (ticket 22), colunas:
+  0/45  45/105  150/75  225/145  370/45  415/60  475/80  555/80  635/85  720/82
+-->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+                                  http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="CONTACORRENTE-0001"
+              pageWidth="842" pageHeight="595" orientation="Landscape"
+              columnWidth="802" leftMargin="20" rightMargin="20"
+              topMargin="20" bottomMargin="20">
+
+    <parameter name="DATA_REFERENCIA" class="java.time.LocalDate"/>
+    <parameter name="LOGO" class="java.io.InputStream" isForPrompting="false"/>
+
+    <field name="agenciaCodigo"    class="java.lang.Short"/>
+    <field name="agenciaNome"      class="java.lang.String"/>
+    <field name="conta"            class="java.lang.String"/>
+    <field name="titular"          class="java.lang.String"/>
+    <field name="tipoConta"        class="java.lang.String"/>
+    <field name="quantidade"       class="java.lang.Long"/>
+    <field name="totalDebito"      class="java.math.BigDecimal"/>
+    <field name="totalCredito"     class="java.math.BigDecimal"/>
+    <field name="saldoInicial"     class="java.math.BigDecimal"/>
+    <field name="saldoFinal"       class="java.math.BigDecimal"/>
+
+    <variable name="debitoAgencia" class="java.math.BigDecimal" resetType="Group"
+              resetGroup="Agencia" calculation="Sum">
+        <variableExpression><![CDATA[$F{totalDebito}]]></variableExpression>
+    </variable>
+    <variable name="creditoAgencia" class="java.math.BigDecimal" resetType="Group"
+              resetGroup="Agencia" calculation="Sum">
+        <variableExpression><![CDATA[$F{totalCredito}]]></variableExpression>
+    </variable>
+    <variable name="contasTotal" class="java.lang.Long" calculation="Count">
+        <variableExpression><![CDATA[$F{conta}]]></variableExpression>
+    </variable>
+
+    <group name="Agencia">
+        <groupExpression><![CDATA[$F{agenciaCodigo}]]></groupExpression>
+        <groupHeader>
+            <band height="18">
+                <textField>
+                    <reportElement x="0" y="0" width="370" height="18"/>
+                    <textElement><font size="10" isBold="true"/></textElement>
+                    <textFieldExpression><![CDATA["Agência " + $F{agenciaCodigo} + " — " + $F{agenciaNome}]]></textFieldExpression>
+                </textField>
+            </band>
+        </groupHeader>
+        <groupFooter>
+            <band height="18">
+                <staticText>
+                    <reportElement x="225" y="0" width="250" height="18"/>
+                    <textElement textAlignment="Right"><font size="9" isBold="true"/></textElement>
+                    <text><![CDATA[Total da agência]]></text>
+                </staticText>
+                <textField pattern="#,##0.00">
+                    <reportElement x="475" y="0" width="80" height="18"/>
+                    <textElement textAlignment="Right"><font size="9" isBold="true"/></textElement>
+                    <textFieldExpression><![CDATA[$V{debitoAgencia}]]></textFieldExpression>
+                </textField>
+                <textField pattern="#,##0.00">
+                    <reportElement x="555" y="0" width="80" height="18"/>
+                    <textElement textAlignment="Right"><font size="9" isBold="true"/></textElement>
+                    <textFieldExpression><![CDATA[$V{creditoAgencia}]]></textFieldExpression>
+                </textField>
+            </band>
+        </groupFooter>
+    </group>
+
+    <title>
+        <band height="46">
+            <image>
+                <reportElement x="0" y="0" width="80" height="40"/>
+                <imageExpression><![CDATA[$P{LOGO}]]></imageExpression>
+            </image>
+            <staticText>
+                <reportElement x="90" y="4" width="500" height="20"/>
+                <textElement><font size="14" isBold="true"/></textElement>
+                <text><![CDATA[Resumo Diário por Conta]]></text>
+            </staticText>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="90" y="24" width="200" height="14"/>
+                <textElement><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$P{DATA_REFERENCIA}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="18">
+            <staticText><reportElement x="0"   y="0" width="45"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Agência]]></text></staticText>
+            <staticText><reportElement x="45"  y="0" width="105" height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Nome da Agência]]></text></staticText>
+            <staticText><reportElement x="150" y="0" width="75"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Conta]]></text></staticText>
+            <staticText><reportElement x="225" y="0" width="145" height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Titular]]></text></staticText>
+            <staticText><reportElement x="370" y="0" width="45"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Tipo de Conta]]></text></staticText>
+            <staticText><reportElement x="415" y="0" width="60"  height="18"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Quantidade de Lançamentos]]></text></staticText>
+            <staticText><reportElement x="475" y="0" width="80"  height="18"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Total de Débitos]]></text></staticText>
+            <staticText><reportElement x="555" y="0" width="80"  height="18"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Total de Créditos]]></text></staticText>
+            <staticText><reportElement x="635" y="0" width="85"  height="18"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Saldo Inicial]]></text></staticText>
+            <staticText><reportElement x="720" y="0" width="82"  height="18"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Saldo Final]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="14">
+            <textField><reportElement x="0"   y="0" width="45"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{agenciaCodigo}]]></textFieldExpression></textField>
+            <textField><reportElement x="45"  y="0" width="105" height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{agenciaNome}]]></textFieldExpression></textField>
+            <textField><reportElement x="150" y="0" width="75"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{conta}]]></textFieldExpression></textField>
+            <textField><reportElement x="225" y="0" width="145" height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{titular}]]></textFieldExpression></textField>
+            <textField><reportElement x="370" y="0" width="45"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{tipoConta}]]></textFieldExpression></textField>
+            <textField pattern="#,##0"><reportElement x="415" y="0" width="60" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{quantidade}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="475" y="0" width="80" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{totalDebito}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="555" y="0" width="80" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{totalCredito}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="635" y="0" width="85" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{saldoInicial}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="720" y="0" width="82" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{saldoFinal}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+
+    <summary>
+        <band height="20">
+            <staticText>
+                <reportElement x="225" y="0" width="190" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <text><![CDATA[Total de contas]]></text>
+            </staticText>
+            <textField pattern="#,##0">
+                <reportElement x="415" y="0" width="60" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{contasTotal}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+</jasperReport>

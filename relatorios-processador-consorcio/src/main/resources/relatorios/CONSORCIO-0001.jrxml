@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CONSORCIO-0001 — Posição Diária de Cotas.
+
+  Fotografia da carteira: toda cota ativa, todo dia. Mesma forma do CLIENTE-0001
+  (ticket 41), então o volume não varia com a Data de Referência e o limiar de
+  +20% do ticket 24 tem aqui outro bom caso.
+
+  GRADE COMUM (ticket 22), colunas:
+  0/50  50/135  185/50  235/150  285... -> ver abaixo
+  0/50  50/135  185/50  235/150  385/70  455/60  515/75  590/70  660/72  732/70
+-->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+                                  http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="CONSORCIO-0001"
+              pageWidth="842" pageHeight="595" orientation="Landscape"
+              columnWidth="802" leftMargin="20" rightMargin="20"
+              topMargin="20" bottomMargin="20">
+
+    <parameter name="DATA_REFERENCIA" class="java.time.LocalDate"/>
+    <parameter name="LOGO" class="java.io.InputStream" isForPrompting="false"/>
+
+    <field name="grupoCodigo"     class="java.lang.Integer"/>
+    <field name="bemReferencia"   class="java.lang.String"/>
+    <field name="cotaNumero"      class="java.lang.Integer"/>
+    <field name="consorciado"     class="java.lang.String"/>
+    <field name="dataAdesao"      class="java.time.LocalDate"/>
+    <field name="situacao"        class="java.lang.String"/>
+    <field name="parcelasPagas"   class="java.lang.Long"/>
+    <field name="prazoMeses"      class="java.lang.Short"/>
+    <field name="percentualPago"  class="java.math.BigDecimal"/>
+    <field name="valorCredito"    class="java.math.BigDecimal"/>
+
+    <variable name="cotasGrupo" class="java.lang.Long" resetType="Group"
+              resetGroup="Grupo" calculation="Count">
+        <variableExpression><![CDATA[$F{cotaNumero}]]></variableExpression>
+    </variable>
+    <variable name="cotasTotal" class="java.lang.Long" calculation="Count">
+        <variableExpression><![CDATA[$F{cotaNumero}]]></variableExpression>
+    </variable>
+
+    <group name="Grupo">
+        <groupExpression><![CDATA[$F{grupoCodigo}]]></groupExpression>
+        <groupHeader>
+            <band height="18">
+                <textField>
+                    <reportElement x="0" y="0" width="385" height="18"/>
+                    <textElement><font size="10" isBold="true"/></textElement>
+                    <textFieldExpression><![CDATA["Grupo " + $F{grupoCodigo} + " — " + $F{bemReferencia}]]></textFieldExpression>
+                </textField>
+            </band>
+        </groupHeader>
+        <groupFooter>
+            <band height="16">
+                <staticText>
+                    <reportElement x="235" y="0" width="220" height="16"/>
+                    <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                    <text><![CDATA[Cotas do grupo]]></text>
+                </staticText>
+                <textField pattern="#,##0">
+                    <reportElement x="455" y="0" width="60" height="16"/>
+                    <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                    <textFieldExpression><![CDATA[$V{cotasGrupo}]]></textFieldExpression>
+                </textField>
+            </band>
+        </groupFooter>
+    </group>
+
+    <title>
+        <band height="46">
+            <image>
+                <reportElement x="0" y="0" width="80" height="40"/>
+                <imageExpression><![CDATA[$P{LOGO}]]></imageExpression>
+            </image>
+            <staticText>
+                <reportElement x="90" y="4" width="500" height="20"/>
+                <textElement><font size="14" isBold="true"/></textElement>
+                <text><![CDATA[Posição Diária de Cotas]]></text>
+            </staticText>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="90" y="24" width="200" height="14"/>
+                <textElement><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$P{DATA_REFERENCIA}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="18">
+            <staticText><reportElement x="0"   y="0" width="50"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Grupo]]></text></staticText>
+            <staticText><reportElement x="50"  y="0" width="135" height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Bem de Referência]]></text></staticText>
+            <staticText><reportElement x="185" y="0" width="50"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Cota]]></text></staticText>
+            <staticText><reportElement x="235" y="0" width="150" height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Consorciado]]></text></staticText>
+            <staticText><reportElement x="385" y="0" width="70"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Data de Adesão]]></text></staticText>
+            <staticText><reportElement x="455" y="0" width="60"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Situação]]></text></staticText>
+            <staticText><reportElement x="515" y="0" width="75"  height="18"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Parcelas Pagas]]></text></staticText>
+            <staticText><reportElement x="590" y="0" width="70"  height="18"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Prazo em Meses]]></text></staticText>
+            <staticText><reportElement x="660" y="0" width="72"  height="18"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Percentual Pago]]></text></staticText>
+            <staticText><reportElement x="732" y="0" width="70"  height="18"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Valor do Crédito]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="14">
+            <textField><reportElement x="0"   y="0" width="50"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{grupoCodigo}]]></textFieldExpression></textField>
+            <textField><reportElement x="50"  y="0" width="135" height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{bemReferencia}]]></textFieldExpression></textField>
+            <textField><reportElement x="185" y="0" width="50"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{cotaNumero}]]></textFieldExpression></textField>
+            <textField><reportElement x="235" y="0" width="150" height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{consorciado}]]></textFieldExpression></textField>
+            <textField pattern="dd/MM/yyyy"><reportElement x="385" y="0" width="70" height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{dataAdesao}]]></textFieldExpression></textField>
+            <textField><reportElement x="455" y="0" width="60"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{situacao}]]></textFieldExpression></textField>
+            <textField pattern="#,##0"><reportElement x="515" y="0" width="75" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{parcelasPagas}]]></textFieldExpression></textField>
+            <textField pattern="#,##0"><reportElement x="590" y="0" width="70" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{prazoMeses}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.000"><reportElement x="660" y="0" width="72" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{percentualPago}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="732" y="0" width="70" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{valorCredito}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+
+    <summary>
+        <band height="20">
+            <staticText>
+                <reportElement x="235" y="0" width="220" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <text><![CDATA[Total de cotas]]></text>
+            </staticText>
+            <textField pattern="#,##0">
+                <reportElement x="455" y="0" width="60" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{cotasTotal}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+</jasperReport>

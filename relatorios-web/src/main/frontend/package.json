@@ -1,0 +1,9 @@
+{
+  "name": "relatorios-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Esqueleto. O app Angular 22.1 + TypeScript 6.0 entra quando a arquitetura do frontend for decidida.",
+  "scripts": {
+    "build": "node build.mjs"
+  }
+}

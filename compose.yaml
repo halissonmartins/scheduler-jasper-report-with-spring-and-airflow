@@ -1,0 +1,44 @@
+# Esqueleto da fase inicial: PostgreSQL + API REST, para demonstrar os health checks.
+# Não é o Compose de produção — Keycloak, MinIO, Airflow, Traefik e a stack de
+# observabilidade entram com os tickets que os decidem.
+
+services:
+
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: relatorios
+      POSTGRES_USER: app_api
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-segredo}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app_api -d relatorios"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  api:
+    build:
+      context: ./relatorios-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/relatorios
+      DB_USER: app_api
+      DB_PASSWORD: ${DB_PASSWORD:-segredo}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      # Aponta para o READINESS, não para o liveness: é ele que responde
+      # "esta instância deve receber tráfego?".
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health/readiness || exit 1"]
+      interval: 10s
+      timeout: 5s
+      # `retries` amortece o Compose — e SÓ o Compose. O health check do Traefik
+      # reage à primeira falha, e é por isso que o amortecimento de verdade mora
+      # no indicador `banco` da aplicação (ticket 28).
+      retries: 3
+      # Cobre partida da JVM e subida do contexto Spring. As migrações NÃO entram
+      # nesta conta: elas rodam no bootstrap do deploy, não no arranque da API.
+      start_period: 60s

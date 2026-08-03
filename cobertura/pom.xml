@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>br.com.relatorios</groupId>
+    <artifactId>relatorios-parent</artifactId>
+    <version>${revision}</version>
+  </parent>
+  <artifactId>cobertura</artifactId>
+  <name>Cobertura agregada</name>
+  <description>
+    Só existe para o report-aggregate do JaCoCo. O gate é de NÃO-REGRESSÃO contra a main,
+    não meta absoluta: os cenários que valem muito neste sistema cobrem poucas linhas, e
+    uma meta percentual seria atingível escrevendo exatamente os testes errados
+    (ticket 30). A lista de cenários obrigatórios na especificação é o gate real.
+  </description>
+
+  <dependencies>
+    <dependency><groupId>br.com.relatorios</groupId><artifactId>relatorios-comum</artifactId><version>${revision}</version></dependency>
+    <dependency><groupId>br.com.relatorios</groupId><artifactId>relatorios-processador-starter</artifactId><version>${revision}</version></dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>agregado</id><phase>verify</phase><goals><goal>report-aggregate</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

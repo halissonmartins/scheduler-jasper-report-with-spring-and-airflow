@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  POUPANCA-0002 — Posição Consolidada de Saldos e Remuneração.
+
+  É o exemplo que carrega o risco de FONTE. O título e os cabeçalhos usam
+  "Poupanca Display", que só existe na font extension deste módulo — não é fonte
+  do sistema. O documento aceitou o trade-off de embutir imagens mas não fontes;
+  a prova de que ele está sob controle é exportar ESTE relatório com
+  `net.sf.jasperreports.awt.ignore.missing.font=false`, porque aí o Jasper lança
+  em vez de substituir em silêncio. O teste fica verde só enquanto a extension
+  estiver mesmo no classpath.
+
+  GRADE COMUM (ticket 22), colunas: 0/50  50/130  180/70  250/65  315/80  395/80  475/80
+-->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+                                  http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="POUPANCA-0002"
+              pageWidth="595" pageHeight="842"
+              columnWidth="555" leftMargin="20" rightMargin="20"
+              topMargin="20" bottomMargin="20">
+
+    <parameter name="DATA_REFERENCIA" class="java.time.LocalDate"/>
+    <parameter name="LOGO" class="java.io.InputStream" isForPrompting="false"/>
+
+    <field name="agenciaCodigo"    class="java.lang.Short"/>
+    <field name="agenciaNome"      class="java.lang.String"/>
+    <field name="diaAniversario"   class="java.lang.Short"/>
+    <field name="quantidadeContas" class="java.lang.Long"/>
+    <field name="saldoTotal"       class="java.math.BigDecimal"/>
+    <field name="baseCalculo"      class="java.math.BigDecimal"/>
+    <field name="rendimento"       class="java.math.BigDecimal"/>
+
+    <variable name="totalSaldo" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{saldoTotal}]]></variableExpression>
+    </variable>
+    <variable name="totalRendimento" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{rendimento}]]></variableExpression>
+    </variable>
+
+    <title>
+        <band height="56">
+            <image>
+                <reportElement x="0" y="0" width="80" height="40"/>
+                <imageExpression><![CDATA[$P{LOGO}]]></imageExpression>
+            </image>
+            <staticText>
+                <reportElement x="90" y="2" width="465" height="22"/>
+                <!-- Fonte da font extension: é este elemento que quebra o teste
+                     se a extension sair do classpath. -->
+                <textElement><font fontName="Poupanca Display" size="15" isBold="true"/></textElement>
+                <text><![CDATA[Posição Consolidada de Saldos e Remuneração]]></text>
+            </staticText>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="90" y="26" width="200" height="14"/>
+                <textElement><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$P{DATA_REFERENCIA}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="20">
+            <staticText><reportElement x="0"   y="0" width="50"  height="20"/><textElement><font fontName="Poupanca Display" size="8" isBold="true"/></textElement><text><![CDATA[Agência]]></text></staticText>
+            <staticText><reportElement x="50"  y="0" width="130" height="20"/><textElement><font fontName="Poupanca Display" size="8" isBold="true"/></textElement><text><![CDATA[Nome da Agência]]></text></staticText>
+            <staticText><reportElement x="180" y="0" width="70"  height="20"/><textElement><font fontName="Poupanca Display" size="8" isBold="true"/></textElement><text><![CDATA[Dia de Aniversário]]></text></staticText>
+            <staticText><reportElement x="250" y="0" width="65"  height="20"/><textElement textAlignment="Right"><font fontName="Poupanca Display" size="8" isBold="true"/></textElement><text><![CDATA[Quantidade de Contas]]></text></staticText>
+            <staticText><reportElement x="315" y="0" width="80"  height="20"/><textElement textAlignment="Right"><font fontName="Poupanca Display" size="8" isBold="true"/></textElement><text><![CDATA[Saldo Total]]></text></staticText>
+            <staticText><reportElement x="395" y="0" width="80"  height="20"/><textElement textAlignment="Right"><font fontName="Poupanca Display" size="8" isBold="true"/></textElement><text><![CDATA[Base de Cálculo]]></text></staticText>
+            <staticText><reportElement x="475" y="0" width="80"  height="20"/><textElement textAlignment="Right"><font fontName="Poupanca Display" size="8" isBold="true"/></textElement><text><![CDATA[Rendimento Creditado]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="14">
+            <textField><reportElement x="0"   y="0" width="50"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{agenciaCodigo}]]></textFieldExpression></textField>
+            <textField><reportElement x="50"  y="0" width="130" height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{agenciaNome}]]></textFieldExpression></textField>
+            <textField><reportElement x="180" y="0" width="70"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{diaAniversario}]]></textFieldExpression></textField>
+            <textField pattern="#,##0"><reportElement x="250" y="0" width="65" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{quantidadeContas}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="315" y="0" width="80" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{saldoTotal}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="395" y="0" width="80" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{baseCalculo}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="475" y="0" width="80" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{rendimento}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+
+    <summary>
+        <band height="20">
+            <staticText>
+                <reportElement x="0" y="0" width="315" height="20"/>
+                <textElement textAlignment="Right"><font fontName="Poupanca Display" size="9" isBold="true"/></textElement>
+                <text><![CDATA[Total geral]]></text>
+            </staticText>
+            <textField pattern="#,##0.00">
+                <reportElement x="315" y="0" width="80" height="20"/>
+                <textElement textAlignment="Right"><font size="9" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{totalSaldo}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00">
+                <reportElement x="475" y="0" width="80" height="20"/>
+                <textElement textAlignment="Right"><font size="9" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{totalRendimento}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+</jasperReport>

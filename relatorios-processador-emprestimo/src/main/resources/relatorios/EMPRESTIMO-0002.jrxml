@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  EMPRESTIMO-0002 — Vencimentos do Dia e Inadimplência por Faixa.
+
+  É AQUI que a sazonalidade do domínio cai: a quantidade de parcelas vencendo na
+  Data de Referência varia várias vezes ao longo do mês (5, 10, 15, 20). Mas a
+  SAÍDA são dezenas de linhas — produto × faixa de atraso —, então a duração é
+  dominada por custo fixo e o pico de dados não vira pico de relógio.
+
+  Essa é a decisão do ticket 44: pôr a sazonalidade onde ela não dirige a
+  duração, preservando o limiar fixo de +20% do ticket 24.
+
+  GRADE COMUM (ticket 22), colunas: 0/110  110/75  185/60  245/80  325/75  400/75  475/80
+-->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+                                  http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="EMPRESTIMO-0002"
+              pageWidth="595" pageHeight="842"
+              columnWidth="555" leftMargin="20" rightMargin="20"
+              topMargin="20" bottomMargin="20">
+
+    <parameter name="DATA_REFERENCIA" class="java.time.LocalDate"/>
+    <parameter name="LOGO" class="java.io.InputStream" isForPrompting="false"/>
+
+    <field name="produtoNome"        class="java.lang.String"/>
+    <field name="faixaAtraso"        class="java.lang.String"/>
+    <field name="parcelasVencendo"   class="java.lang.Long"/>
+    <field name="valorVencendo"      class="java.math.BigDecimal"/>
+    <field name="parcelasEmAtraso"   class="java.lang.Long"/>
+    <field name="valorEmAtraso"      class="java.math.BigDecimal"/>
+    <field name="percentualCarteira" class="java.math.BigDecimal"/>
+
+    <variable name="atrasoProduto" class="java.math.BigDecimal" resetType="Group"
+              resetGroup="Produto" calculation="Sum">
+        <variableExpression><![CDATA[$F{valorEmAtraso}]]></variableExpression>
+    </variable>
+    <variable name="vencendoTotal" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{valorVencendo}]]></variableExpression>
+    </variable>
+    <variable name="atrasoTotal" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{valorEmAtraso}]]></variableExpression>
+    </variable>
+
+    <group name="Produto">
+        <groupExpression><![CDATA[$F{produtoNome}]]></groupExpression>
+        <groupHeader>
+            <band height="18">
+                <textField>
+                    <reportElement x="0" y="0" width="325" height="18"/>
+                    <textElement><font size="10" isBold="true"/></textElement>
+                    <textFieldExpression><![CDATA[$F{produtoNome}]]></textFieldExpression>
+                </textField>
+            </band>
+        </groupHeader>
+        <groupFooter>
+            <band height="16">
+                <staticText>
+                    <reportElement x="110" y="0" width="290" height="16"/>
+                    <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                    <text><![CDATA[Atraso do produto]]></text>
+                </staticText>
+                <textField pattern="#,##0.00">
+                    <reportElement x="400" y="0" width="75" height="16"/>
+                    <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                    <textFieldExpression><![CDATA[$V{atrasoProduto}]]></textFieldExpression>
+                </textField>
+            </band>
+        </groupFooter>
+    </group>
+
+    <title>
+        <band height="52">
+            <image>
+                <reportElement x="0" y="0" width="80" height="40"/>
+                <imageExpression><![CDATA[$P{LOGO}]]></imageExpression>
+            </image>
+            <staticText>
+                <reportElement x="90" y="2" width="465" height="22"/>
+                <textElement><font size="13" isBold="true"/></textElement>
+                <text><![CDATA[Vencimentos do Dia e Inadimplência por Faixa]]></text>
+            </staticText>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="90" y="26" width="200" height="14"/>
+                <textElement><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$P{DATA_REFERENCIA}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="20">
+            <staticText><reportElement x="0"   y="0" width="110" height="20"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Produto de Crédito]]></text></staticText>
+            <staticText><reportElement x="110" y="0" width="75"  height="20"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Faixa de Atraso]]></text></staticText>
+            <staticText><reportElement x="185" y="0" width="60"  height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Parcelas Vencendo]]></text></staticText>
+            <staticText><reportElement x="245" y="0" width="80"  height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Valor Vencendo]]></text></staticText>
+            <staticText><reportElement x="325" y="0" width="75"  height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Parcelas em Atraso]]></text></staticText>
+            <staticText><reportElement x="400" y="0" width="75"  height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Valor em Atraso]]></text></staticText>
+            <staticText><reportElement x="475" y="0" width="80"  height="20"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Percentual da Carteira]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="14">
+            <textField><reportElement x="0"   y="0" width="110" height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{produtoNome}]]></textFieldExpression></textField>
+            <textField><reportElement x="110" y="0" width="75"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{faixaAtraso}]]></textFieldExpression></textField>
+            <textField pattern="#,##0"><reportElement x="185" y="0" width="60" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{parcelasVencendo}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="245" y="0" width="80" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{valorVencendo}]]></textFieldExpression></textField>
+            <textField pattern="#,##0"><reportElement x="325" y="0" width="75" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{parcelasEmAtraso}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="400" y="0" width="75" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{valorEmAtraso}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="475" y="0" width="80" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{percentualCarteira}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+
+    <summary>
+        <band height="20">
+            <staticText>
+                <reportElement x="0" y="0" width="245" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <text><![CDATA[Total geral]]></text>
+            </staticText>
+            <textField pattern="#,##0.00">
+                <reportElement x="245" y="0" width="80" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{vencendoTotal}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00">
+                <reportElement x="400" y="0" width="75" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{atrasoTotal}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+</jasperReport>

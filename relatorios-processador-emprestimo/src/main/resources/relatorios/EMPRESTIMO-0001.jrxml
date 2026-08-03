@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  EMPRESTIMO-0001 — Posição da Carteira de Contratos.
+
+  Volume PLANO de propósito: a sazonalidade deste domínio (vencimentos em 5, 10,
+  15 e 20) existe nos dados e alimenta o EMPRESTIMO-0002, mas não dirige a
+  duração deste. Ver ticket 44 — o limiar fixo de +20% do ticket 24 continua
+  funcionando aqui porque a duração não varia.
+
+  GRADE COMUM (ticket 22), colunas:
+  0/50  50/95  145/150  295/70  365/80  445/80  525/60  585/60  645/72  717/85
+-->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+                                  http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="EMPRESTIMO-0001"
+              pageWidth="842" pageHeight="595" orientation="Landscape"
+              columnWidth="802" leftMargin="20" rightMargin="20"
+              topMargin="20" bottomMargin="20">
+
+    <parameter name="DATA_REFERENCIA" class="java.time.LocalDate"/>
+    <parameter name="LOGO" class="java.io.InputStream" isForPrompting="false"/>
+
+    <field name="produtoNome"     class="java.lang.String"/>
+    <field name="contratoNumero"  class="java.lang.String"/>
+    <field name="tomador"         class="java.lang.String"/>
+    <field name="dataContratacao" class="java.time.LocalDate"/>
+    <field name="valorContratado" class="java.math.BigDecimal"/>
+    <field name="saldoDevedor"    class="java.math.BigDecimal"/>
+    <field name="parcelasPagas"   class="java.lang.Long"/>
+    <field name="parcelasAbertas" class="java.lang.Long"/>
+    <field name="diasAtraso"      class="java.lang.Integer"/>
+    <field name="valorGarantia"   class="java.math.BigDecimal"/>
+
+    <variable name="saldoProduto" class="java.math.BigDecimal" resetType="Group"
+              resetGroup="Produto" calculation="Sum">
+        <variableExpression><![CDATA[$F{saldoDevedor}]]></variableExpression>
+    </variable>
+    <variable name="saldoTotal" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{saldoDevedor}]]></variableExpression>
+    </variable>
+
+    <group name="Produto">
+        <groupExpression><![CDATA[$F{produtoNome}]]></groupExpression>
+        <groupHeader>
+            <band height="18">
+                <textField>
+                    <reportElement x="0" y="0" width="365" height="18"/>
+                    <textElement><font size="10" isBold="true"/></textElement>
+                    <textFieldExpression><![CDATA["Produto de crédito: " + $F{produtoNome}]]></textFieldExpression>
+                </textField>
+            </band>
+        </groupHeader>
+        <groupFooter>
+            <band height="18">
+                <staticText>
+                    <reportElement x="145" y="0" width="300" height="18"/>
+                    <textElement textAlignment="Right"><font size="9" isBold="true"/></textElement>
+                    <text><![CDATA[Saldo devedor do produto]]></text>
+                </staticText>
+                <textField pattern="#,##0.00">
+                    <reportElement x="445" y="0" width="80" height="18"/>
+                    <textElement textAlignment="Right"><font size="9" isBold="true"/></textElement>
+                    <textFieldExpression><![CDATA[$V{saldoProduto}]]></textFieldExpression>
+                </textField>
+            </band>
+        </groupFooter>
+    </group>
+
+    <title>
+        <band height="46">
+            <image>
+                <reportElement x="0" y="0" width="80" height="40"/>
+                <imageExpression><![CDATA[$P{LOGO}]]></imageExpression>
+            </image>
+            <staticText>
+                <reportElement x="90" y="4" width="500" height="20"/>
+                <textElement><font size="14" isBold="true"/></textElement>
+                <text><![CDATA[Posição da Carteira de Contratos]]></text>
+            </staticText>
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="90" y="24" width="200" height="14"/>
+                <textElement><font size="9"/></textElement>
+                <textFieldExpression><![CDATA[$P{DATA_REFERENCIA}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="18">
+            <staticText><reportElement x="0"   y="0" width="50"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Produto]]></text></staticText>
+            <staticText><reportElement x="50"  y="0" width="95"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Contrato]]></text></staticText>
+            <staticText><reportElement x="145" y="0" width="150" height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Tomador]]></text></staticText>
+            <staticText><reportElement x="295" y="0" width="70"  height="18"/><textElement><font size="8" isBold="true"/></textElement><text><![CDATA[Data de Contratação]]></text></staticText>
+            <staticText><reportElement x="365" y="0" width="80"  height="18"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Valor Contratado]]></text></staticText>
+            <staticText><reportElement x="445" y="0" width="80"  height="18"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Saldo Devedor]]></text></staticText>
+            <staticText><reportElement x="525" y="0" width="60"  height="18"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Parcelas Pagas]]></text></staticText>
+            <staticText><reportElement x="585" y="0" width="60"  height="18"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Parcelas em Aberto]]></text></staticText>
+            <staticText><reportElement x="645" y="0" width="72"  height="18"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Dias de Atraso]]></text></staticText>
+            <staticText><reportElement x="717" y="0" width="85"  height="18"/><textElement textAlignment="Right"><font size="8" isBold="true"/></textElement><text><![CDATA[Valor da Garantia]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="14">
+            <textField><reportElement x="0"   y="0" width="50"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{produtoNome}]]></textFieldExpression></textField>
+            <textField><reportElement x="50"  y="0" width="95"  height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{contratoNumero}]]></textFieldExpression></textField>
+            <textField><reportElement x="145" y="0" width="150" height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{tomador}]]></textFieldExpression></textField>
+            <textField pattern="dd/MM/yyyy"><reportElement x="295" y="0" width="70" height="14"/><textElement><font size="8"/></textElement><textFieldExpression><![CDATA[$F{dataContratacao}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="365" y="0" width="80" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{valorContratado}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="445" y="0" width="80" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{saldoDevedor}]]></textFieldExpression></textField>
+            <textField pattern="#,##0"><reportElement x="525" y="0" width="60" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{parcelasPagas}]]></textFieldExpression></textField>
+            <textField pattern="#,##0"><reportElement x="585" y="0" width="60" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{parcelasAbertas}]]></textFieldExpression></textField>
+            <textField pattern="#,##0"><reportElement x="645" y="0" width="72" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{diasAtraso}]]></textFieldExpression></textField>
+            <textField pattern="#,##0.00"><reportElement x="717" y="0" width="85" height="14"/><textElement textAlignment="Right"><font size="8"/></textElement><textFieldExpression><![CDATA[$F{valorGarantia}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+
+    <summary>
+        <band height="20">
+            <staticText>
+                <reportElement x="145" y="0" width="300" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <text><![CDATA[Saldo devedor da carteira]]></text>
+            </staticText>
+            <textField pattern="#,##0.00">
+                <reportElement x="445" y="0" width="80" height="20"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{saldoTotal}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+</jasperReport>

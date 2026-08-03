@@ -1,0 +1,616 @@
+# PROTÓTIPO DESCARTÁVEL — será substituído pelo SpringDOC OpenAPI.
+# O valor deste arquivo são as decisões que ele forçou, registradas no ticket 31.
+# Não implemente a partir dele sem ler a resolução do ticket.
+
+openapi: 3.1.0
+
+info:
+  title: Scheduler Jasper Report — API REST
+  version: 0.0.1-prototipo
+  description: |
+    Contrato REST do sistema de coleta agendada e geração sob demanda de relatórios.
+
+    **Duas formas de endereçar uma Execução, de propósito.** A chave natural
+    (Código de Relatório + Data de Referência) endereça a Execução **disponível** daquele par —
+    é o que o relator usa, e é derivável do drop-down sem consulta prévia. O identificador
+    opaco endereça **uma linha específica**, inclusive tentativas que falharam — é o que o
+    histórico e a administração usam. A chave natural não é única: um par acumula linhas em
+    `ERRO` e `SEM_DADOS`, e no máximo uma em `SUCESSO`/`ALERTA`.
+
+    **Exportação é síncrona.** Não há protocolo de polling, artefato temporário nem TTL.
+
+servers:
+  - url: https://relatorios.exemplo.com.br/api
+    description: Traefik → API REST
+
+security:
+  - bearerJWT: []
+
+tags:
+  - name: Consumo
+    description: O que o RELATOR usa. Sempre filtrado pelas Roles de Relatório da claim.
+  - name: Histórico
+    description: Execuções e downloads passados. ADMINISTRADOR.
+  - name: Coleta
+    description: Disparo manual de Coleta. ADMINISTRADOR.
+  - name: Cadastro
+    description: Produtos e Relatórios. ADMINISTRADOR.
+  - name: Autorização
+    description: Roles de Relatório, Grupos e vínculos. GERENTE, sempre mediado.
+
+paths:
+
+  # ---------------------------------------------------------------- Consumo
+
+  /execucoes-disponiveis:
+    get:
+      tags: [Consumo]
+      operationId: listarExecucoesDisponiveis
+      summary: Execuções que o usuário pode gerar
+      description: |
+        Alimenta o drop-down de três níveis (data → Produto → Código) numa **única** resposta:
+        o frontend agrupa em memória e troca de nível sem ir à rede. Com retenção de 7 dias e
+        dez Relatórios diários, o conjunto é de ~70 linhas.
+
+        Já vem filtrado pelas Roles de Relatório da claim — o cliente nunca recebe algo que não
+        poderia gerar. O ADMINISTRADOR recebe tudo (bypass de alcance, não de limite).
+
+        `expirado` é **derivado** da data prevista de expurgo e é conservador: um item marcado
+        como expirado pode ainda baixar, porque o scanner do MinIO recolhe depois da data.
+      parameters:
+        - { name: data,    in: query, schema: { type: string, format: date } }
+        - { name: sigla,   in: query, schema: { type: string } }
+        - { name: codigo,  in: query, schema: { type: string, pattern: '^[A-Z]{1,20}-\d{4}$' } }
+        - { name: pagina,  in: query, schema: { type: integer, default: 0 } }
+        - { name: tamanho, in: query, schema: { type: integer, default: 200 } }
+      responses:
+        '200':
+          description: Lista, possivelmente vazia. Lista vazia **não é erro** — é o estado que leva à página dedicada de "sem acesso".
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  itens:
+                    type: array
+                    items: { $ref: '#/components/schemas/ExecucaoDisponivel' }
+                  total: { type: integer }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+
+  /relatorios/{codigo}/execucoes/{dataReferencia}/exportacao:
+    get:
+      tags: [Consumo]
+      operationId: exportar
+      summary: Exporta a Execução disponível do par
+      description: |
+        **Síncrono**: responde com os bytes. Resolve para a Execução disponível
+        (`SUCESSO` ou `ALERTA`) daquele par; `404` se não houver nenhuma.
+
+        **O CSV é diferente dos outros três**, e a diferença é de contrato:
+        ele não passa pelo Jasper, não desserializa nada, **não consome o semáforo** de
+        exportação e responde com `Content-Encoding: gzip`.
+
+        **Divergência PDF × CSV — esta descrição é o único lugar onde a regra aparece.**
+        O CSV é o **dataset da consulta principal**. PDF, XLSX e DOCX são a **visão formatada**.
+        Totais, subtotais e agrupamentos definidos no relatório **podem não ser reproduzíveis**
+        a partir do CSV.
+      parameters:
+        - { name: codigo, in: path, required: true, schema: { type: string, pattern: '^[A-Z]{1,20}-\d{4}$' } }
+        - { name: dataReferencia, in: path, required: true, schema: { type: string, format: date } }
+        - name: formato
+          in: query
+          required: true
+          schema: { type: string, enum: [PDF, XLSX, DOCX, CSV] }
+      responses:
+        '200':
+          description: |
+            Os bytes, com `Content-Disposition: attachment`. CSV acrescenta `Content-Encoding: gzip`.
+          headers:
+            Content-Disposition: { schema: { type: string }, example: 'attachment; filename="POUPANCA-0001_2026-08-01.pdf"' }
+            Content-Encoding:    { schema: { type: string }, description: '`gzip`, apenas para CSV.' }
+          content:
+            application/pdf:    { schema: { type: string, format: binary } }
+            text/csv:           { schema: { type: string, format: binary } }
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: { schema: { type: string, format: binary } }
+            application/vnd.openxmlformats-officedocument.wordprocessingml.document: { schema: { type: string, format: binary } }
+        '403': { $ref: '#/components/responses/SemPermissao' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409': { $ref: '#/components/responses/ConflitoDeEstado' }
+        '410': { $ref: '#/components/responses/Expirado' }
+        '503': { $ref: '#/components/responses/ExportacaoIndisponivel' }
+
+  # -------------------------------------------------------------- Histórico
+
+  /execucoes:
+    get:
+      tags: [Histórico]
+      operationId: listarExecucoes
+      summary: Todas as Execuções, inclusive as que falharam
+      description: |
+        Endereçamento por identificador opaco. Diferente de `/execucoes-disponiveis`, que
+        responde "o que dá para gerar": aqui aparecem `ERRO` e `SEM_DADOS`, e o mesmo par pode
+        ter várias linhas.
+      parameters:
+        - { name: codigo, in: query, schema: { type: string } }
+        - { name: de,     in: query, schema: { type: string, format: date } }
+        - { name: ate,    in: query, schema: { type: string, format: date } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/StatusExecucao' } }
+      responses:
+        '200':
+          description: Lista paginada.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Execucao' }
+        '403': { $ref: '#/components/responses/SemPermissao' }
+
+  /execucoes/{id}:
+    get:
+      tags: [Histórico]
+      operationId: obterExecucao
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          content: { application/json: { schema: { $ref: '#/components/schemas/Execucao' } } }
+          description: Uma Execução específica.
+        '403': { $ref: '#/components/responses/SemPermissao' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /downloads:
+    get:
+      tags: [Histórico]
+      operationId: listarDownloads
+      summary: Histórico de downloads
+      description: |
+        Fotografia denormalizada: sobrevive à remoção do Relatório, do usuário e ao expurgo do
+        Artefato. `execucaoId` pode ser nulo — o reprocessamento apaga a Execução anterior.
+        Cresce indefinidamente, sem política de retenção própria.
+      parameters:
+        - { name: de,      in: query, schema: { type: string, format: date } }
+        - { name: ate,     in: query, schema: { type: string, format: date } }
+        - { name: codigo,  in: query, schema: { type: string } }
+        - { name: pagina,  in: query, schema: { type: integer, default: 0 } }
+        - { name: tamanho, in: query, schema: { type: integer, default: 50 } }
+      responses:
+        '200':
+          description: Lista paginada.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Download' }
+        '403': { $ref: '#/components/responses/SemPermissao' }
+
+  # ----------------------------------------------------------------- Coleta
+
+  /relatorios/{codigo}/execucoes/{dataReferencia}/refazer:
+    post:
+      tags: [Coleta]
+      operationId: refazerColeta
+      summary: Refaz uma Coleta que não deu certo
+      description: |
+        Válido **apenas** quando o par está livre no índice — isto é, a última tentativa ficou
+        em `ERRO` ou `SEM_DADOS`. Não destrói nada, e por isso **não exige motivo**.
+
+        A API decide qual verbo é válido consultando o estado real; o cliente não escolhe
+        livremente. Pedir `refazer` num par ocupado por `SUCESSO` devolve `409` com o código que
+        aponta o verbo correto.
+      parameters:
+        - { name: codigo, in: path, required: true, schema: { type: string } }
+        - { name: dataReferencia, in: path, required: true, schema: { type: string, format: date } }
+      responses:
+        '202':
+          description: DAG disparada. O `202` aqui é sobre a **Coleta**, que é assíncrona por natureza — não sobre exportação.
+        '403': { $ref: '#/components/responses/SemPermissao' }
+        '409': { $ref: '#/components/responses/ConflitoDeEstado' }
+
+  /relatorios/{codigo}/execucoes/{dataReferencia}/reprocessar:
+    post:
+      tags: [Coleta]
+      operationId: reprocessarColeta
+      summary: Refaz uma Coleta que deu certo, destruindo a anterior
+      description: |
+        Exigido quando há `SUCESSO` ou `ALERTA` ocupando o par. **Apaga** a Execução anterior e
+        suas linhas de Artefato, e sobrescreve os objetos no repositório.
+
+        Exige motivo, que vai para a auditoria junto com solicitante e Correlation ID.
+
+        Depois disso, um registro de Download anterior aponta para bytes diferentes dos que a
+        pessoa baixou, e **não há como verificar** o que foi substituído — a auditoria diz quem
+        e por quê, nunca o quê.
+      parameters:
+        - { name: codigo, in: path, required: true, schema: { type: string } }
+        - { name: dataReferencia, in: path, required: true, schema: { type: string, format: date } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [motivo]
+              properties:
+                motivo: { type: string, minLength: 10 }
+      responses:
+        '202': { description: DAG disparada; a Execução anterior foi apagada. }
+        '403': { $ref: '#/components/responses/SemPermissao' }
+        '409': { $ref: '#/components/responses/ConflitoDeEstado' }
+        '422': { $ref: '#/components/responses/ValidacaoRecusada' }
+
+  # --------------------------------------------------------------- Cadastro
+
+  /produtos:
+    get:
+      tags: [Cadastro]
+      operationId: listarProdutos
+      responses:
+        '200':
+          description: Produtos cadastrados.
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Produto' } } } }
+    post:
+      tags: [Cadastro]
+      operationId: cadastrarProduto
+      description: |
+        A **Sigla** é dado próprio, informado no cadastro, único e **imutável** — ela aparece em
+        todo Código de Relatório e em todo caminho de Artefato. O Nome é rótulo mutável.
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/Produto' } } }
+      responses:
+        '201': { description: Criado. }
+        '403': { $ref: '#/components/responses/SemPermissao' }
+        '422': { $ref: '#/components/responses/ValidacaoRecusada' }
+
+  /inventario:
+    get:
+      tags: [Cadastro]
+      operationId: listarInventario
+      summary: JRXML publicados pelas imagens implantadas
+      description: |
+        O inventário é a enumeração dos Relatórios que as imagens implantadas sabem executar,
+        publicado no bootstrap. **Só se cadastra Código presente aqui** — é o que torna
+        Relatório fantasma impossível.
+
+        Os dois estados de descompasso são visíveis: `publicado, não cadastrado` (existe na
+        imagem, ninguém pediu que rodasse) e `cadastrado, não publicado` (o bean saiu numa
+        imagem nova). Nenhum dos dois gera DAG.
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/ItemInventario' } }
+          description: Inventário publicado.
+
+  /relatorios:
+    get:
+      tags: [Cadastro]
+      operationId: listarRelatorios
+      responses:
+        '200':
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Relatorio' } } } }
+          description: Relatórios cadastrados.
+    post:
+      tags: [Cadastro]
+      operationId: cadastrarRelatorio
+      description: |
+        O Código precisa existir no inventário publicado. O `tempoEstimadoSegundos` vem
+        pré-preenchido com a sugestão do módulo, mas quem decide é o ADMINISTRADOR — e há uma
+        **guarda**: `3 × (2 × tempoEstimado + 120) ≤ LIMITE_ORFA`. Acima disso a varredura de
+        órfãs fecharia uma Coleta ainda em retentativa.
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/Relatorio' } } }
+      responses:
+        '201': { description: Criado. }
+        '403': { $ref: '#/components/responses/SemPermissao' }
+        '422': { $ref: '#/components/responses/ValidacaoRecusada' }
+
+  # ------------------------------------------------------------ Autorização
+
+  /roles-de-relatorio:
+    get:
+      tags: [Autorização]
+      operationId: listarRolesDeRelatorio
+      description: Consulta a Admin API do Keycloak ao vivo — não há espelho no banco.
+      responses:
+        '200':
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/RoleDeRelatorio' } } } }
+          description: Roles do client dedicado.
+    post:
+      tags: [Autorização]
+      operationId: criarRoleDeRelatorio
+      description: |
+        Mediado: o GERENTE nunca recebe credencial do Keycloak. O nome segue
+        `REL_<SIGLA>_<NOME>` e a Role pertence a **exatamente um Produto** — Relatórios de
+        Produtos diferentes na mesma Role são recusados.
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RoleDeRelatorio' } } }
+      responses:
+        '201': { description: Criada. }
+        '403': { $ref: '#/components/responses/SemPermissao' }
+        '422': { $ref: '#/components/responses/ValidacaoRecusada' }
+
+  /relatorios/{codigo}/roles-de-relatorio:
+    put:
+      tags: [Autorização]
+      operationId: vincularRolesAoRelatorio
+      description: O único elo da cadeia que vive no banco — o Keycloak não sabe o que é um Relatório.
+      parameters:
+        - { name: codigo, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content: { application/json: { schema: { type: array, items: { type: string } } } }
+      responses:
+        '204': { description: Vinculado. }
+        '403': { $ref: '#/components/responses/SemPermissao' }
+        '422': { $ref: '#/components/responses/ValidacaoRecusada' }
+
+  /grupos:
+    get:
+      tags: [Autorização]
+      operationId: listarGrupos
+      responses:
+        '200':
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Grupo' } } } }
+          description: Grupos da subárvore de relatórios, do Keycloak.
+
+  /grupos/{id}/membros:
+    post:
+      tags: [Autorização]
+      operationId: vincularUsuarioAoGrupo
+      summary: Vincula um RELATOR a um Grupo
+      description: |
+        **Operação composta**: entra no Grupo real **e** sai do `PENDENTES`. São duas chamadas à
+        Admin API que precisam parecer uma — o Keycloak não remove de Default Group sozinho, e
+        sem a segunda o usuário fica contando como pendente para sempre.
+
+        Falha pela metade tem código próprio: o GERENTE precisa saber que a ação ficou
+        incompleta, não receber sucesso silencioso.
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, properties: { usuarioSub: { type: string } } }
+      responses:
+        '204': { description: Vinculado e removido do PENDENTES. }
+        '403': { $ref: '#/components/responses/SemPermissao' }
+        '500': { $ref: '#/components/responses/ErroInterno' }
+
+  /usuarios/pendentes:
+    get:
+      tags: [Autorização]
+      operationId: listarPendentes
+      summary: Cadastros aguardando vínculo
+      description: |
+        Membros do Default Group `PENDENTES`, **filtrados por `emailVerified = true`** — o
+        Keycloak aplica Default Groups na criação e a verificação bloqueia só o login, então sem
+        o filtro a lista acumularia cadastros não confirmados.
+
+        É o **único** sinal de que alguém está esperando: não há e-mail de aviso. Ordenada pelos
+        mais antigos, com a idade de cada um.
+      responses:
+        '200':
+          content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/UsuarioPendente' } } } }
+          description: Fila de pendentes.
+
+  /usuarios/{sub}:
+    delete:
+      tags: [Autorização]
+      operationId: excluirRelator
+      description: |
+        Exclusão **definitiva** no Keycloak. Irreversível. A auditoria registra apenas o fato —
+        não os Grupos de que a pessoa participava. O histórico de Download sobrevive, porque é
+        fotografia.
+      parameters:
+        - { name: sub, in: path, required: true, schema: { type: string } }
+      responses:
+        '204': { description: Excluído. }
+        '403': { $ref: '#/components/responses/SemPermissao' }
+
+components:
+
+  securitySchemes:
+    bearerJWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Access token do Keycloak. As **Roles de Relatório** chegam em
+        `resource_access.<client>.roles`; o **Perfil** em `realm_access.roles`. A autorização sai
+        **só da claim** — não há consulta ao Keycloak no caminho quente. Janela de revogação de
+        até 300 s.
+
+  schemas:
+
+    StatusExecucao:
+      type: string
+      enum: [EM_PROCESSAMENTO, SUCESSO, ALERTA, SEM_DADOS, ERRO]
+
+    ExecucaoDisponivel:
+      type: object
+      properties:
+        codigo:         { type: string, example: POUPANCA-0001 }
+        nome:           { type: string }
+        sigla:          { type: string, example: POUPANCA }
+        nomeProduto:    { type: string, example: Poupança }
+        dataReferencia: { type: string, format: date }
+        status:         { $ref: '#/components/schemas/StatusExecucao' }
+        temDados:       { type: boolean, description: '`false` quando `SEM_DADOS` — listada, marcada, sem download.' }
+        expirado:       { type: boolean, description: 'Derivado da data prevista de expurgo. Conservador: pode ainda baixar.' }
+        expuragoPrevisto: { type: string, format: date }
+
+    Execucao:
+      type: object
+      properties:
+        id:                  { type: string, format: uuid }
+        codigo:              { type: string }
+        dataReferencia:      { type: string, format: date }
+        status:              { $ref: '#/components/schemas/StatusExecucao' }
+        inicio:              { type: string, format: date-time, description: 'Abertura pelo Airflow, antes do container.' }
+        inicioProcessamento: { type: string, format: date-time, nullable: true, description: 'Quando a Coleta começou de fato. Base de `ALERTA` e do timeout duro.' }
+        fim:                 { type: string, format: date-time, nullable: true }
+        linhasProcessadas:   { type: integer, nullable: true }
+        correlationId:       { type: string, nullable: true, description: 'Nulo enquanto o container não gravar — e para sempre se ele nunca subir.' }
+        dagRunId:            { type: string }
+        versaoJasperReports: { type: string, nullable: true }
+
+    Download:
+      type: object
+      description: Fotografia. Todos os campos abaixo são valores da época, não referências.
+      properties:
+        ocorridoEm:     { type: string, format: date-time }
+        usuarioNome:    { type: string }
+        codigo:         { type: string }
+        relatorioNome:  { type: string }
+        siglaProduto:   { type: string }
+        dataReferencia: { type: string, format: date }
+        formato:        { type: string, enum: [PDF, XLSX, DOCX, CSV] }
+        viaBypass:      { type: boolean, description: 'Acesso concedido pelo Perfil ADMINISTRADOR, não por Role de Relatório.' }
+        execucaoId:     { type: string, format: uuid, nullable: true }
+
+    Produto:
+      type: object
+      required: [sigla, nome]
+      properties:
+        sigla: { type: string, pattern: '^[A-Z]{1,20}$', description: Imutável. }
+        nome:  { type: string, description: Rótulo mutável. }
+
+    Relatorio:
+      type: object
+      required: [codigo, nome, tempoEstimadoSegundos]
+      properties:
+        codigo:                { type: string, pattern: '^[A-Z]{1,20}-\d{4}$' }
+        nome:                  { type: string }
+        descricao:             { type: string }
+        tempoEstimadoSegundos: { type: integer, minimum: 1 }
+        publicado:             { type: boolean, readOnly: true }
+
+    ItemInventario:
+      type: object
+      properties:
+        codigo:                  { type: string }
+        modulo:                  { type: string }
+        caminhoJrxml:            { type: string }
+        tempoEstimadoSugerido:   { type: integer }
+        publicadoEm:             { type: string, format: date-time }
+        cadastrado:              { type: boolean }
+
+    RoleDeRelatorio:
+      type: object
+      properties:
+        nome:  { type: string, pattern: '^REL_[A-Z]{1,20}_[A-Z0-9_]+$' }
+        sigla: { type: string, description: 'Derivável do nome. Uma Role pertence a exatamente um Produto.' }
+
+    Grupo:
+      type: object
+      properties:
+        id:   { type: string }
+        nome: { type: string }
+
+    UsuarioPendente:
+      type: object
+      properties:
+        sub:          { type: string }
+        username:     { type: string }
+        email:        { type: string }
+        criadoEm:     { type: string, format: date-time }
+        diasAguardando: { type: integer }
+
+    Problema:
+      type: object
+      description: |
+        RFC 9457. `type` é URN **não dereferenciável** — o `codigo` carrega a identidade legível
+        por máquina, e publicar catálogo criaria obrigação de hospedagem.
+
+        **Exceção conhecida**: requisição com cabeçalho acima do limite do Tomcat é rejeitada
+        antes de qualquer filtro — sem corpo padronizado e **sem Correlation ID**.
+      properties:
+        type:          { type: string, example: 'urn:relatorios:erro:artefato-acima-do-limite' }
+        title:         { type: string }
+        status:        { type: integer }
+        detail:        { type: string }
+        instance:      { type: string }
+        codigo:        { type: string }
+        momento:       { type: string, format: date-time }
+        correlationId: { type: string }
+
+  responses:
+
+    NaoAutenticado:
+      description: Token ausente, expirado ou inválido.
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+
+    SemPermissao:
+      description: |
+        **Genérico por decisão, não por descuido.** Quatro situações produzem esta mesma saída:
+        sem Role de Relatório; acesso revogado com token ainda válido; aguardando vínculo; e
+        vinculado a Grupo sem Relatório algum. A UI orienta a **refazer login**, que é o que
+        resolve o segundo caso.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problema' }
+          example: { codigo: SEM_PERMISSAO_PARA_RELATORIO, status: 403 }
+
+    NaoEncontrado:
+      description: Não existe Execução disponível para o par, ou o recurso não existe.
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problema' } } }
+
+    Expirado:
+      description: |
+        O Artefato existiu e foi expurgado. `410` e não `404`, porque afirma que o recurso
+        existiu e foi removido deliberadamente. A mensagem informa a **data real** do expurgo —
+        não "7 dias", porque o arredondamento é em UTC e a Data de Referência é de São Paulo.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problema' }
+          example: { codigo: ARTEFATO_EXPIRADO, status: 410, detail: 'Expurgado pela política de retenção em 08/08/2026.' }
+
+    ConflitoDeEstado:
+      description: |
+        Estado incompatível com a operação. **Permanente** — repetir não adianta, e a mensagem
+        não deve convidar a repetir. Compare com `503`, que é o oposto.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problema' }
+          examples:
+            acimaDoLimite:
+              value: { codigo: ARTEFATO_ACIMA_DO_LIMITE, status: 409, detail: 'Este relatório excede o tamanho máximo para exportação.' }
+            semDados:
+              value: { codigo: EXECUCAO_SEM_DADOS, status: 409, detail: 'A coleta rodou e a origem não tinha registros.' }
+            verboIndevido:
+              value: { codigo: VERBO_INDEVIDO_USE_REPROCESSAR, status: 409, detail: 'Há uma execução bem-sucedida neste par. Use reprocessar — ele apaga a anterior.' }
+            integridade:
+              value: { codigo: ARTEFATO_INTEGRIDADE_DIVERGENTE, status: 409 }
+
+    ExportacaoIndisponivel:
+      description: |
+        Semáforo de exportações cheio. **Transitório** — repetir é exatamente o que se deve
+        fazer, e `Retry-After` diz quando. Confundir isto com `409` produz o pior de dois
+        mundos: usuário insistindo no que nunca vai passar, e desistindo do que passaria.
+      headers:
+        Retry-After: { schema: { type: integer } }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problema' }
+          example: { codigo: EXPORTACAO_INDISPONIVEL, status: 503 }
+
+    ValidacaoRecusada:
+      description: Recusa de validação. O motivo vai para a auditoria quando a operação é do GERENTE.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problema' }
+          examples:
+            roleForaDoPadrao:  { value: { codigo: ROLE_FORA_DO_PADRAO, status: 422 } }
+            roleMisturaProdutos: { value: { codigo: ROLE_MISTURA_PRODUTOS, status: 422 } }
+            semMotivo:         { value: { codigo: REPROCESSAMENTO_SEM_MOTIVO, status: 422 } }
+
+    ErroInterno:
+      description: |
+        Inclui o caso da **operação composta que falhou pela metade** — entrou no Grupo e não
+        saiu do `PENDENTES`. Precisa ser distinguível de erro genérico.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problema' }
+          example: { codigo: VINCULACAO_INCOMPLETA, status: 500 }
