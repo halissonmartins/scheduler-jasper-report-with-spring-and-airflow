@@ -29,3 +29,14 @@ Pesquisa completa em [`../research/06-persistencia.md`](../research/06-persisten
 - **Pool pequeno com orçamento explícito**: ~4 conexões por pool no batch (dois pools por container), ~10 na API, total ~68 de `max_connections=100`; o botão real é o paralelismo da DAG no Airflow, cujo banco de metadados fica em instância separada. PgBouncer só se o paralelismo crescer.
 - **Isolamento por credencial, não por convenção**: `CREATE SCHEMA ... AUTHORIZATION`, `public` fora do `search_path`, `ALTER DEFAULT PRIVILEGES`, e usuário de migração com DDL separado do de runtime via `spring.flyway.url/user/password`.
 - Repassado a outros tickets: DDL e GRANTs concretos → 04; tag do Testcontainers e o caso contra o H2 → 09; paralelismo da DAG → 13/19; ambiguidade "chave ausente vs nula" no CSV → 23.
+
+## Notas do ticket 48 (deploy e runbook)
+
+- **As migrações ganharam uma restrição que vem do deploy, não do banco**: toda migração é **aditiva e
+  compatível com a imagem anterior** — coluna nova sempre nula, nunca `DROP` nem rename no mesmo
+  release. É o que substitui um procedimento de rollback, já que o Flyway não desfaz e o deploy é
+  roll-forward.
+- **Renomear coluna vira dança de dois releases**: adiciona a nova e escreve nas duas; só no seguinte
+  remove a antiga.
+- **A ordem no deploy é fixa**: Flyway por natureza de schema **antes** do `--publicar-inventario`, que
+  escreve em `jrxml_publicado`.

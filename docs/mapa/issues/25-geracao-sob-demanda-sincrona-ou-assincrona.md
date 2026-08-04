@@ -179,3 +179,25 @@ acontecer, em vez de pelo chamado do relator dias depois. É o mesmo mecanismo j
 - **Diretriz que saiu de lá e vale aqui**: "todo lançamento de todas as contas" é extração de dados, não
   relatório. Um relatório é agregado ou recortado, e um dump não deveria caber neste sistema — é a
   contenção mais barata do risco aceito, porque atua antes de qualquer teto.
+
+## Notas do ticket 45 (arquitetura Angular)
+
+- **A decisão de não haver link temporário fechou a porta do download nativo.** Como o navegador não
+  manda `Authorization` num `<a download>`, o front busca os bytes por `HttpClient` com
+  `responseType: 'blob'` — o arquivo passa **inteiro pela memória do navegador**, e não há progresso
+  nativo.
+- **Isso reforça a exigência de estado visível na tela durante a exportação**: sem barra de progresso e
+  com o `503` do semáforo como desfecho possível, uma tela parada é indistinguível de travada.
+- **O maior artefato define também um limite do lado do cliente**, não só do heap da API — é o
+  `CONTACORRENTE-0001` (ticket 42), e o número entra no dimensionamento do ticket 49.
+
+## Notas do ticket 49 (dimensionamento e capacidade) — a contenção erodiu
+
+- **Este ticket aceitou não ter teto na Coleta escrevendo que a contenção seria "métrica de tamanho com
+  alerta no Grafana". O ticket 29 depois decidiu alertas sem canal de notificação** — a contenção virou
+  "alguém percebe se estiver olhando", e ninguém revisitou esta decisão até o ticket 49.
+- **O ticket 49 apresentou um teto por bytes do `.jrprint` — conferível pelo metadado, antes do semáforo
+  e sem consumir slot — e ele foi recusado.** Fica sem teto, com o modo de falha nomeado: OOM na JVM da
+  API, sem isolamento (ADR 0002), alcançável por uso ordinário.
+- **Consequência**: os números do k6 deixam de ser conforto e passam a ser a única defesa — `N` do
+  semáforo, heap contra o maior `.jrprint`, e o multiplicador entre artefato serializado e heap ocupado.

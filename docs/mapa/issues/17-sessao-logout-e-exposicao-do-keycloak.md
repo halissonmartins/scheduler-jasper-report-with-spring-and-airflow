@@ -138,3 +138,15 @@ Tirar o Keycloak do caminho quente tem um corolário que o **ticket 28** precisa
 Keycloak impede login e refresh — mas não impede quem já tem token válido de listar e gerar
 relatórios. Amarrar readiness ao Keycloak tiraria de operação instâncias que estão perfeitamente
 capazes de trabalhar.
+
+## Notas do ticket 47 (fluxos de e-mail)
+
+- **A UI do Mailpit entra na allowlist do Traefik, com autenticação própria.** Ela contém links de
+  verificação e de redefinição de senha em **texto claro** — é porta de tomada de conta, e em
+  desenvolvimento fica aberta. Em produção não pode.
+- **A recuperação de senha passou a depender de um passo humano.** Este ticket mandou a troca para o
+  Account Console e o ticket 07 recusou `manage-users` justamente para ninguém redefinir a senha de
+  outro. Com Mailpit em produção (ticket 47), quem esquece a senha depende de o operador repassar o link
+  — não há caminho próprio nem administrativo.
+- **O tema de e-mail é mais configuração viva** que o import de realm não reproduz, somando-se à
+  allowlist e às features do realm já listadas aqui.

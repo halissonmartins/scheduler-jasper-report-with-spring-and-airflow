@@ -30,3 +30,14 @@ Research completo em [`../research/11-ingress-deploy.md`](../research/11-ingress
 - **Compose**: base + `compose.prod.yaml` via `COMPOSE_FILE`; segredos por `secrets:`/`*_FILE` com a ressalva de que fora do Swarm é bind mount de arquivo do host (risco aceito); `restart: unless-stopped` só para serviços de longa duração, nunca para os jobs Batch; healthcheck em `/actuator/health/readiness` + `depends_on: service_healthy` + deploy por `up -d --wait`.
 - **Airflow**: o Compose oficial do Airflow é declaradamente não-produtivo (risco aceito, já que K8s está fora de escopo). `DockerOperator` cria containers **irmãos**: `mount_tmp_dir=False`, `network_mode` na rede nomeada do backend, `auto_remove='force'`. O acoplamento perigoso é o socket do Docker compartilhado com o Traefik — preferir VM separada; senão, socket proxy por consumidor.
 - **ARM64**: sem bloqueios — as 14 imagens de terceiros da stack publicam arm64 nativo (tabela no research).
+
+## Notas do ticket 49 (dimensionamento e capacidade)
+
+- **Uma VM só** (risco aceito no ticket 49), o que torna mais agudo o acoplamento que este ticket
+  apontou: acesso ao socket do Docker é equivalente a root no host, e agora esse host tem também o
+  PostgreSQL e o repositório S3.
+- **Saída barata, sem custar VM**: o Airflow **precisa** do socket pelo `DockerOperator`, mas o Traefik
+  não — configurá-lo por **arquivo estático** em vez de descoberta via Docker tira o socket dele e
+  remove metade do problema.
+- **Limites de memória por container no Compose** passam a ser a única separação entre a API (cujo OOM o
+  ticket 49 aceitou como alcançável) e o banco.

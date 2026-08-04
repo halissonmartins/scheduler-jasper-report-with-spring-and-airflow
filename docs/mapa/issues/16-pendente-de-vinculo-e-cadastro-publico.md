@@ -166,3 +166,14 @@ Consequências que dependem da resposta:
 - **O contador bruto de membros do `PENDENTES` diverge da tela por construção**, porque a listagem
   filtra `emailVerified` e o contador não. Painel que use o número bruto vai mostrar um valor maior
   que a fila real.
+
+## Notas do ticket 47 (fluxos de e-mail)
+
+- **O cadastro público deixou de ser autoserviço na prática.** O ticket 47 decidiu Mailpit em produção
+  (risco aceito), e o Mailpit **captura em vez de entregar** — então o e-mail de verificação que este
+  ticket tornou obrigatório só chega ao candidato se um operador abrir a UI do Mailpit e repassar o link.
+- **O efeito bate exatamente onde este ticket é mais sensível**: sem verificar, o candidato fica fora da
+  listagem (filtro `emailVerified`) e **invisível ao GERENTE**, enquanto o contador do `PENDENTES` — o
+  único sinal que existe — segue contando gente que ninguém enxerga pela tela.
+- **A allowlist por domínio segue recusada** e a razão continua válida; o que mudou é que a porta de
+  entrada agora tem um passo humano no meio.

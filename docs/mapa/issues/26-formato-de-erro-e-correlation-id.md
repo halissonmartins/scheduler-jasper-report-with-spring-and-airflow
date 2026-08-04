@@ -254,3 +254,14 @@ Se o JWT crescer além do limite de cabeçalho do Tomcat, a requisição é reje
 filtro — sem MDC, sem Correlation ID, sem `@ControllerAdvice`, sem corpo padronizado. O ticket 15
 decidiu não instalar guarda contra isso. Fica **documentado como exceção conhecida**, em vez de
 implícito.
+
+## Notas do ticket 45 (arquitetura Angular)
+
+- **O catálogo continua sendo um só, e é o da API.** O front exibe o `detail` do `ProblemDetail` como
+  veio e **não** mantém mapa próprio de `codigo` → mensagem: dois catálogos divergiriam no primeiro
+  código novo, e o front não conhece o contexto (qual limite, de quanto, qual Relatório).
+- **Consequência para a redação do `detail`**: ele é texto de tela, não log. Precisa ser escrito em
+  pt-BR para o relator, com o número concreto quando houver um.
+- **O front mapeia `codigo` para comportamento**, não para texto: `EXPORTACAO_INDISPONIVEL` é permanente
+  e não oferece "tentar de novo"; `503` é transitório e oferece. Essa classificação precisa estar no
+  catálogo, senão a tela a adivinha.

@@ -430,3 +430,14 @@ o que existe na máquina de produção.
 - **Consequência para a cobertura**: o estado criado no ticket 02 fica coberto **apenas por teste**, em
   todo o mapa. Ele precisa estar na lista de cenários obrigatórios com essa nota explícita — senão
   alguém supõe que a produção o exercita e afrouxa o teste.
+
+## Notas do ticket 46 (pipeline de CI)
+
+- **A lista de cenários obrigatórios deixou de ser verificada em revisão e virou executável.** Cada item
+  da especificação é um identificador, cada identificador é um teste marcado, e o CI afirma que todos
+  **rodaram e passaram** — não que existem, porque `@Disabled` satisfaria a presença sem provar nada.
+- **A conferência é nas duas direções**: id sem teste (cenário removido em silêncio) e teste marcado sem
+  id (cenário sem justificativa). A segunda preserva o motivo pelo qual este ticket criou a lista.
+- **A não-regressão de cobertura ganhou mecanismo**: artefato do JaCoCo publicado no merge, baixado pelo
+  PR. Baseline ausente **regenera rodando a main uma vez**, e o fallback é barulhento — regenerar em
+  silêncio faria um artefato expirado transformar o gate em enfeite.
