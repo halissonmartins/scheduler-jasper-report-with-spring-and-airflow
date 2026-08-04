@@ -8,6 +8,8 @@ Uma **especificação técnica pronta para implementar** (`docs/especificacao.md
 
 O mapa acaba quando alguém consegue implementar o sistema inteiro sem restar nenhuma pergunta de arquitetura.
 
+> **Destino alcançado.** A especificação está em [`docs/especificacao.md`](../especificacao.md), sintetizada dos 49 tickets e dos três ADRs. Ela é a fonte normativa a partir daqui; os tickets permanecem como o registro de **por que** cada decisão é o que é — inclusive os argumentos recusados, que a spec só resume.
+
 ## Notes
 
 - **Domínio**: coleta agendada de relatórios (Airflow → container Spring Batch → `.jrprint` + `.csv.gz` → MinIO → metadados) e geração/exportação sob demanda via API REST (PDF, XLSX, DOCX, CSV).
