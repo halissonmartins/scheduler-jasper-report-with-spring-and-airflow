@@ -4,12 +4,6 @@
 > sistema faz e **por quê**. O **como** — stack, módulos, formatos de arquivo,
 > orquestração e infraestrutura — vive em [`arquitetura-inicial.md`](./arquitetura-inicial.md).
 
-| | |
-|---|---|
-| **Versão** | 3 — migração técnica concluída |
-| **Status** | Em revisão |
-| **Idioma do domínio** | pt-BR. Os termos da seção *Conceitos do domínio* aparecem no código como estão escritos aqui |
-
 ---
 
 ## 1. Visão geral
@@ -92,7 +86,7 @@ próprio (ver RN-24).
 
 ---
 
-## 4. Escopo do MVP
+## 4. Escopo
 
 ### 4.1 Coleta
 
@@ -144,10 +138,6 @@ Explicitamente **não** faz parte desta versão:
 - **Reexportação a partir de artefato expurgado** — passada a janela de retenção, o dado
   daquela data deixa de existir para o sistema.
 
-As exclusões de natureza técnica (Kubernetes, mascaramento e criptografia em repouso, cache
-de exportação, deploy em produção/homologação) estão em
-[`arquitetura-inicial.md`](./arquitetura-inicial.md#fora-de-escopo) e não são repetidas aqui.
-
 ---
 
 ## 6. Métrica de sucesso
@@ -160,7 +150,7 @@ primária mede exatamente isso.
 > **Taxa de apuração limpa:** percentual das execuções agendadas que terminam em
 > `processado com sucesso` — ou seja, sem falha e **dentro** do tempo estimado cadastrado.
 >
-> **Meta: ≥ 99%, medida em janela móvel de 30 dias.** `PROVISÓRIO — a validar após o
+> **Meta: ≥ 98%, medida em janela móvel de 30 dias.** `PROVISÓRIO — a validar após o
 > primeiro mês de operação.`
 >
 > **Denominador:** execuções agendadas concluídas no período, **excluídas as canceladas** —
@@ -169,7 +159,7 @@ primária mede exatamente isso.
 >
 > A janela é de 30 dias, e não do ciclo diário, por uma razão aritmética: com o volume
 > previsto em RNF-03 (10 execuções por ciclo), uma única falha derruba o dia para 90% e a
-> meta de 99% seria inalcançável ou irrelevante. Em 30 dias a série tem ~300 execuções e a
+> meta de 98% seria inalcançável ou irrelevante. Em 30 dias a série tem ~300 execuções e a
 > meta passa a significar algo: no máximo 3 apurações sujas por mês.
 
 ### Secundárias
@@ -456,11 +446,11 @@ inexistente.
 | **RNF-02** | Teto de relatórios por produto | 9.999 — decorre de RN-03, não é provisório |
 | **RNF-03** | Execuções por ciclo diário | 10 `PROVISÓRIO` |
 | **RNF-04** | Janela do ciclo de coleta | Concluir em até 60 min `PROVISÓRIO` |
-| **RNF-05** | Tamanho máximo de artefato | 50 MB `PROVISÓRIO` |
+| **RNF-05** | Tamanho máximo de artefato | 250 MB `PROVISÓRIO` |
 | **RNF-06** | Volume máximo do dataset de um relatório | 500.000 linhas `PROVISÓRIO` |
-| **RNF-07** | Latência de exportação, p95 — PDF | ≤ 5 s `PROVISÓRIO` |
-| **RNF-08** | Latência de exportação, p95 — XLSX e DOCX | ≤ 15 s `PROVISÓRIO` |
-| **RNF-09** | Latência de exportação, p95 — CSV | ≤ 2 s `PROVISÓRIO` |
+| **RNF-07** | Latência de exportação, p95 — PDF | ≤ 15 s `PROVISÓRIO` |
+| **RNF-08** | Latência de exportação, p95 — XLSX e DOCX | ≤ 25 s `PROVISÓRIO` |
+| **RNF-09** | Latência de exportação, p95 — CSV | ≤ 5 s `PROVISÓRIO` |
 | **RNF-10** | Exportações simultâneas suportadas | 10 `PROVISÓRIO` |
 | **RNF-11** | Usuários simultâneos | 25 `PROVISÓRIO` |
 | **RNF-12** | Janela de retenção dos artefatos | 7 dias, configurável — RN-36 |
@@ -496,31 +486,6 @@ listadas para poderem ser contestadas individualmente.
 | D17 | O tempo estimado governava alerta e timeout, mas não constava do cadastro | **Obrigatório**, em segundos, maior que zero | RN-04 |
 | D18 | O texto dizia que exportar CSV pelo mecanismo de renderização "sai feio", mas o CSV não passa por ele | **PDF e DOCX paginam; XLSX ignora a paginação; CSV é dataset bruto** | RN-32 a RN-34 |
 | D19 | Nenhum requisito não-funcional era quantificado | **Metas provisórias numéricas**, explicitamente marcadas | §10 |
-
-### Regras acrescentadas sem discussão prévia
-
-Estas não constavam da versão anterior e não foram objeto de decisão explícita. São
-derivações defensáveis, marcadas aqui justamente por não terem sido confirmadas:
-
-- **RN-05** (produto só é removido sem relatórios) e **RF-42** (relatório não é removido
-  com execução na janela de retenção) — evitam órfãos no armazenamento e no histórico.
-- **RN-15** (status terminal não muda mais), **RN-42** (só exporta de sucesso ou alerta) e
-  **RN-43** (`em processamento` bloqueia nova execução) — tornam o ciclo de vida
-  verificável; a versão anterior deixava os três casos implícitos.
-- **RN-31** (a exportação nunca lê a base transacional) — é o propósito do sistema, mas
-  não estava escrito em lugar nenhum como proibição.
-- **RN-35** (todo download é registrado) — estava implícito em "visualização do histórico
-  de downloads" do perfil ADMINISTRADOR, sem nunca ter sido declarado como requisito.
-
-### Regras da versão anterior removidas deliberadamente
-
-- A regra sobre tempo estimado aparecia **duas vezes**, sendo uma subconjunto da outra.
-  Restou uma formulação única (RN-11 a RN-13).
-- A explicação do comportamento interno do mecanismo de exportação de planilhas saiu: é
-  justificativa técnica de uma decisão de produto que agora está declarada em RN-33.
-- "Estrutura com os dados não estruturados" foi descartada por ser autocontraditória e não
-  descrever requisito algum. A hierarquia lógica está em RN-08; o formato dos artefatos é
-  assunto de arquitetura.
 
 ---
 

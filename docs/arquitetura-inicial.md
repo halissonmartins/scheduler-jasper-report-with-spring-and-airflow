@@ -4,12 +4,6 @@
 > sistema é construído — stack, módulos, formatos de arquivo, orquestração e infraestrutura.
 > O **o quê** e o **porquê** vivem em [`prd.md`](./prd.md).
 
-| | |
-|---|---|
-| **Versão** | 2 — estruturação em decisões identificadas e incorporação do conteúdo técnico migrado do PRD |
-| **Status** | Em revisão |
-| **Escopo desta versão** | Ambiente local apenas (RA-50) |
-
 > **Os identificadores são permanentes.** Um `RA-NN` nunca é renumerado nem reaproveitado:
 > decisão nova recebe o próximo número livre, ainda que pertença a uma seção anterior; decisão
 > descartada tem o ID aposentado. É o que permite que um ADR, um teste ou um commit citem uma
@@ -340,8 +334,6 @@ RN não é erro — muitas RN são regras de aplicação sem consequência de in
 
 **Abertas nesta revisão**
 
-- **Alvo de ambiente de produção.** RA-50 fixa apenas o ambiente local; o destino de produção
-  (Docker Compose em VM ou outro) não está decidido. Merece ADR quando for.
 - **Periodicidade e horário da coleta** (PRD Q1) — define o `schedule` da DAG e a janela de RNF-04.
 - **Base de contagem da retenção** (PRD Q8): data de referência ou data de gravação do objeto. O
   lifecycle do bucket só conhece a data do objeto; se a contagem for pela data de referência, RA-20
@@ -355,7 +347,6 @@ RN não é erro — muitas RN são regras de aplicação sem consequência de in
 - Modelagem da gravação dos metadados de processamento (data/hora início, data/hora fim, status).
 - Modelagem da gravação dos metadados do relatório: tempo estimado de execução em segundos, produto,
   nome e descrição.
-- Revisão da tech stack (seção 11).
 - Definição dos nomes dos módulos.
 - Definição da arquitetura interna de cada módulo e sua respectiva estrutura.
 - Definição dos relatórios de exemplo (RA-08) e seus respectivos modelos de dados.
