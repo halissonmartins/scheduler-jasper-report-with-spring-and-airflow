@@ -162,12 +162,32 @@ flowchart LR
   **7 dias**) define quando os artefatos são apagados automaticamente (RN-36, RN-37). Como não há
   retroatividade (RN-54), a data de referência **é** a data de gravação do objeto, e a política do
   bucket implementa a janela de RN-36 sem ajuste de compensação.
+
+  **Precisão real da janela, verificada no código** (`internal/bucket/lifecycle/lifecycle.go`,
+  `ExpectedExpiryTime`): o MinIO calcula a expiração como
+  `truncar(modTime_UTC + (dias + 1) × 24h, 24h)`. Com `--expire-days 7` e o ciclo às 03h00 BRT
+  (06h00 UTC), o objeto é removido à **meia-noite UTC do oitavo dia — 21h00 em São Paulo**. A
+  retenção efetiva é de **7 dias e ~18 horas**: nunca menor que os 7 dias de RN-36, e o desvio é
+  constante e previsível. O que não é intuitivo é o **horário**: o artefato some às 21h, não à
+  meia-noite local. O varredor que aplica a regra roda a cada ~1 min (`dataScannerStartDelay`), e
+  não a cada 24h como se costuma afirmar — a remoção é pronta assim que a fronteira é cruzada.
 - **RA-21** — Uma **função de callback no MinIO** (`Bucket Notifications`) marca o artefato como
   **expurgado** no schema de controle, para que RN-39 possa recusar com mensagem explícita de
   indisponibilidade em vez de erro genérico.
-  **Risco declarado:** a documentação do MinIO confirma notificações para eventos de ILM de
-  *transição* e *restauração*, mas não foi possível confirmar que a **expiração** emita evento. Se
-  não emitir, RA-21 fica sem gatilho. **Exige spike antes de ser implementada** (seção 14).
+
+  **Verificado no código-fonte do MinIO:** a expiração por ILM emite
+  **`s3:ObjectRemoved:Delete`**, com `UserAgent: "Internal: [ILM-Expiry]"` — tanto no caminho de
+  objeto não transicionado (`cmd/data-scanner.go`, `applyExpiryOnNonTransitionedObjects`) quanto no
+  transicionado (`cmd/bucket-lifecycle.go`, `expireTransitionedObject`). O MinIO **diverge do S3 da
+  AWS** aqui: na AWS a expiração não dispara `ObjectRemoved`, e foi por isso que ela precisou criar
+  a família `s3:LifecycleExpiration:*`, que o MinIO não possui.
+
+  **Armadilha de configuração, e ela está na própria documentação do MinIO.** O README de
+  lifecycle manda usar `mc event add --event ilm` para observar eventos de ciclo de vida. No
+  `mc`, o alias `ilm` expande para `s3:ObjectRestore:*` e `s3:ObjectTransition:*` — **a expiração
+  não está aí**. A assinatura correta para RA-21 é **`--event delete`**, que expande para
+  `s3:ObjectRemoved:*`. Seguir a documentação ao pé da letra produziria um webhook que nunca
+  dispara, sem erro algum.
 - **RA-63** — **A marca de expurgo é recebida por endpoint da API**, autenticado por credencial de
   serviço e exposto ao MinIO — é superfície nova e declarada como tal. E a marca é **autoritativa
   quando presente**: quando ela falta, a API deriva o estado *expirado* pela comparação
@@ -452,11 +472,12 @@ reavaliados.**
 
 **Spikes — bloqueiam implementação, não desenho**
 
-- **A expiração por ILM do MinIO emite evento de notificação?** RA-21 depende disso. Verificação:
-  regra de ILM de 1 dia, `mc event add` em `s3:ObjectRemoved:*`, observar o webhook. Se não emitir,
-  RA-21 é substituída pela derivação aritmética já descrita em RA-63.
 - **Calibração dos limites** de PRD §10 com `k6`: tamanho real do `.jrprint` desserializado,
   latência de exportação por formato e teto real de simultaneidade. Substitui os `PROVISÓRIO`.
+- **Confirmar o comportamento de RA-21 na tag de imagem que o Compose fixar.** O achado do código é
+  do branch `master`; o contrato de eventos é estável há anos, mas a verificação custa poucos
+  minutos: assinar `--event delete`, apagar um objeto manualmente e observar o webhook. Não é mais
+  uma incógnita de desenho — é conferência de versão.
 
 **Desenho ainda aberto**
 
@@ -469,7 +490,9 @@ reavaliados.**
 
 Periodicidade e horário da coleta; base de contagem da retenção; execuções paralelas ou
 sequenciais; cadastramento de novos contêineres no Airflow (RA-65: task estática, porque produto é
-código); modelagem conceitual dos metadados de execução (RA-67) e do relatório (RA-58).
+código); modelagem conceitual dos metadados de execução (RA-67) e do relatório (RA-58); **e o
+gatilho de RA-21 — a expiração por ILM emite `s3:ObjectRemoved:Delete`, confirmado no código-fonte
+do MinIO**.
 
 ---
 
