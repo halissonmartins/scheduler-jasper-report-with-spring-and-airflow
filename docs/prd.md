@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| **Versão** | 2 — revisão de ambiguidades |
+| **Versão** | 3 — migração técnica concluída |
 | **Status** | Em revisão |
 | **Idioma do domínio** | pt-BR. Os termos da seção *Conceitos do domínio* aparecem no código como estão escritos aqui |
 
@@ -544,15 +544,8 @@ derivações defensáveis, marcadas aqui justamente por não terem sido confirma
 
 | Documento | Papel | Estado |
 |---|---|---|
-| [`arquitetura-inicial.md`](./arquitetura-inicial.md) | Eixo de engenharia: stack, módulos, regras arquiteturais, trade-offs | Existe |
+| [`arquitetura-inicial.md`](./arquitetura-inicial.md) | Eixo de engenharia: stack, módulos, decisões arquiteturais (`RA-NN`), trade-offs. Contém o conteúdo técnico retirado deste PRD e a rastreabilidade RA ↔ RN | Existe |
 | [`guias/guia-app-web.md`](./guias/guia-app-web.md) | Método: define os artefatos exigidos em cada fase | Existe |
 | `glossario.md` | Linguagem ubíqua completa. A seção 7 deste PRD é a semente | **Não existe** — exigido por P0 |
 | `user-stories.md` | Histórias com critério de aceite em Given/When/Then, derivadas dos RF da seção 9 | **Não existe** — exigido por P0 |
 | `design/fluxos.md` | Os fluxos principais com estados de erro | **Não existe** — P1 |
-
-> **Nota de migração.** Ao reescrever este PRD, conteúdo de natureza técnica foi retirado e
-> deve ser incorporado a `arquitetura-inicial.md`, que ainda não o contém integralmente: o
-> formato e as extensões dos artefatos gravados; o encadeamento orquestrador → contêiner de
-> processamento → base transacional → repositório; o nome do parâmetro que aciona o
-> reprocessamento forçado; e o mecanismo pelo qual o orquestrador encerra execuções que
-> terminaram de forma anômala (RN-10).
