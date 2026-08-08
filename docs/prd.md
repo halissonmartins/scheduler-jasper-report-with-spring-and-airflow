@@ -380,7 +380,10 @@ Três ciclos de vida independentes. Confundi-los é o que faria a métrica de 30
 calculada sobre dados que já não existem.
 
 - **RN-36** — Os **artefatos** ficam disponíveis por uma **janela de retenção de 7 dias**,
-  contada a partir da data de referência. O valor é configurável pela operação.
+  contada a partir da data de referência. O valor é configurável pela operação. O expurgo é
+  aplicado por política do repositório, que arredonda para o fim do dia em UTC: na prática o
+  artefato some por volta das **21h do sétimo dia**, e nunca antes de completar os 7 dias. Quem
+  precisa do relatório no último dia da janela precisa buscá-lo antes disso — ver RA-20.
 - **RN-37** — Expirada a janela, os artefatos são expurgados automaticamente e aquela data de
   referência deixa de aparecer na listagem.
 - **RN-51** — Os **metadados de Execução nunca são expurgados**. A métrica primária tem janela

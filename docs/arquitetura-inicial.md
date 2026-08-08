@@ -508,7 +508,8 @@ do MinIO**.
 5. **Criar os arquivos `CLAUDE.md` e `ARCHITECTURE.md`** no projeto e dentro de cada módulo,
    carregando os invariantes desta revisão: `catchup=False`, `queryTimeout`, convenção de autoria
    do JRXML, quem escreve no schema de controle, teto por produto e semáforo de exportação.
-6. **Spike do evento de expiração do MinIO** (seção 14).
+6. **Calibração dos limites de PRD §10 com `k6`** (seção 14) — é o único spike que ainda bloqueia.
+   Ao configurar o expurgo, assinar **`--event delete`** e não `--event ilm` (RA-21).
 7. **Criar as guidelines do projeto.**
 
 ---
