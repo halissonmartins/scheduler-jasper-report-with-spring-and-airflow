@@ -611,5 +611,6 @@ As nove questões da revisão anterior foram respondidas.
 | [`arquitetura-inicial.md`](./arquitetura-inicial.md) | Eixo de engenharia: stack, módulos, decisões (`RA-NN`), trade-offs | Existe |
 | [`adr/`](./adr/) | Uma decisão estruturante por arquivo | Existe |
 | [`guias/guia-app-web.md`](./guias/guia-app-web.md) | Método: define os artefatos exigidos em cada fase | Existe |
-| `user-stories.md` | Histórias com critério de aceite em Given/When/Then | **Não existe** — exigido por P0 |
+| [`especificacao.md`](./especificacao.md) | Spec do MVP: histórias, decisões de implementação e costuras de teste | Existe |
+| `user-stories.md` | Histórias com critério de aceite em Given/When/Then | Coberto por [`especificacao.md`](./especificacao.md) §3, com os `RF-NN` deste PRD como critério; o Given/When/Then vive nos `.feature` (E3) |
 | `design/fluxos.md` | Os fluxos principais com estados de erro | **Não existe** — P1 |

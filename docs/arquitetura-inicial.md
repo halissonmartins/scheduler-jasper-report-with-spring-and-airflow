@@ -535,6 +535,7 @@ Exclusões de natureza técnica. As de produto estão em [`prd.md`](./prd.md#5-f
 | [`glossario.md`](./glossario.md) | Linguagem ubíqua. Fonte única das definições | Existe |
 | [`adr/`](./adr/) | Uma decisão estruturante por arquivo | Existe |
 | [`guias/guia-app-web.md`](./guias/guia-app-web.md) | Método: define os artefatos exigidos em cada fase | Existe |
+| [`especificacao.md`](./especificacao.md) | Spec do MVP: consome as `RA-NN` daqui e fixa as três costuras de teste | Existe |
 | `arquitetura/c4-contexto.md` | Diagramas C4 nível 1 e 2 em Mermaid | **Não existe** — exigido por E0 |
 | `riscos.md` | Riscos técnicos abertos e como cada um será resolvido | **Não existe** — exigido por E0 |
 | `ARCHITECTURE.md` | Mapa do código e invariantes — *onde eu mexo para fazer X* | **Não existe** — exigido por E1 |
