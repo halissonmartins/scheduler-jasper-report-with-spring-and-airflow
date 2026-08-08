@@ -1,8 +1,13 @@
 # Referências
 
+- Glossário (fonte única das definições do domínio): @docs/glossario.md
 - PRD: @docs/prd.md
 - Arquitetura inicial: @docs/arquitetura-inicial.md
+- Decisões arquiteturais: `docs/adr/`
 - Guia de implementação: @docs/guias/guia-app-web.md
+
+Um termo do domínio é definido **apenas** no glossário. O PRD e a arquitetura usam os termos e
+não os redefinem.
 
 # Diretrizes
 

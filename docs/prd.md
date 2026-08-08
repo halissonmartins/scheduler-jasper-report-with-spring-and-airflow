@@ -3,6 +3,8 @@
 > Documento do eixo **Produto** (P0 do `guias/guia-app-web.md`). Descreve **o que** o
 > sistema faz e **por quê**. O **como** — stack, módulos, formatos de arquivo,
 > orquestração e infraestrutura — vive em [`arquitetura-inicial.md`](./arquitetura-inicial.md).
+> Os termos do domínio são definidos uma única vez em [`glossario.md`](./glossario.md) e
+> **não** são redefinidos aqui.
 
 ---
 
@@ -22,11 +24,11 @@ O relatório é **lido da base uma vez** e **exportado quantas vezes for preciso
 
 ## 2. Problema
 
-A base transacional de cada produto só pode ser lida uma vez por dia, por um processo
-controlado. Toda solicitação de relatório que vá direto à base transacional concorre com a
-operação do produto — e é justamente no fim do mês, quando mais se pede relatório, que a
-base está mais carregada. Não existe hoje um lugar onde o dado do relatório já esteja
-apurado, congelado por data e pronto para ser entregue.
+A base transacional de cada produto só pode ser lida pela Coleta, numa janela controlada.
+Toda solicitação de relatório que vá direto à base transacional concorre com a operação do
+produto — e é justamente no fim do mês, quando mais se pede relatório, que a base está mais
+carregada. Não existe hoje um lugar onde o dado do relatório já esteja apurado, congelado por
+data e pronto para ser entregue.
 
 As consequências, por pessoa:
 
@@ -35,8 +37,6 @@ As consequências, por pessoa:
   diferente do PDF.
 - **Quem administra o acesso** não tem como conceder acesso a um conjunto de relatórios:
   concede caso a caso, e a permissão fica dispersa e não auditável.
-- **Quem administra o catálogo** não tem um lugar único que diga quais relatórios existem,
-  a que produto pertencem e quanto tempo cada um leva para ser apurado.
 - **Quem opera** descobre que a apuração falhou quando o usuário reclama. Uma execução que
   travou fica indistinguível de uma que ainda está rodando.
 
@@ -54,7 +54,7 @@ e observável.
 |---|---|---|---|
 | **Relator** | Analista de uma área de negócio | Baixar, no formato certo, os relatórios da sua área numa data específica | Diária a semanal |
 | **Gerente** | Responsável por uma área | Conceder e revogar acesso a relatórios sem depender de TI | Eventual |
-| **Administrador** | Responsável pelo catálogo e pela plataforma | Cadastrar produtos e relatórios, gerir usuários administrativos, diagnosticar e refazer apurações | Eventual |
+| **Administrador** | Responsável pela plataforma | Ajustar o catálogo, gerir usuários administrativos, diagnosticar e refazer apurações | Eventual |
 
 ### 3.2 Perfis
 
@@ -63,8 +63,9 @@ aplicação. Um usuário tem exatamente um perfil.
 
 | Ação | ADMINISTRADOR | GERENTE | RELATOR |
 |---|:---:|:---:|:---:|
-| Cadastrar/remover produto | ✅ | ❌ | ❌ |
-| Cadastrar/remover relatório | ✅ | ❌ | ❌ |
+| Editar nome do produto | ✅ | ❌ | ❌ |
+| Editar nome, descrição e tempo estimado de relatório | ✅ | ❌ | ❌ |
+| Inativar produto e relatório | ✅ | ❌ | ❌ |
 | Cadastrar/remover usuário ADMINISTRADOR e GERENTE | ✅ | ❌ | ❌ |
 | Remover usuário RELATOR | ✅ | ✅ | ❌ |
 | Cadastrar/remover role de relatório | ❌ | ✅ | ❌ |
@@ -74,7 +75,6 @@ aplicação. Um usuário tem exatamente um perfil.
 | Incluir/remover usuário em grupo | ❌ | ✅ | ❌ |
 | Listar relatórios disponíveis | ✅ *(todos)* | ❌ | ✅ *(só os permitidos)* |
 | Exportar e baixar relatório | ✅ *(todos)* | ❌ | ✅ *(só os permitidos)* |
-| Cancelar execução em andamento | ✅ | ❌ | ❌ |
 | Solicitar reprocessamento forçado | ✅ | ❌ | ❌ |
 | Consultar histórico de downloads | ✅ | ❌ | ❌ |
 | Autocadastrar-se | ❌ | ❌ | ✅ |
@@ -82,7 +82,11 @@ aplicação. Um usuário tem exatamente um perfil.
 
 O **ADMINISTRADOR** é o único perfil com acesso irrestrito aos relatórios: ele não passa
 pela cadeia de permissão. É uma exceção deliberada de autorização e, como tal, exige teste
-próprio (ver RN-24).
+próprio (RN-24).
+
+> **Não existe "cadastrar produto" nem "cadastrar relatório".** O catálogo é derivado do
+> código (RN-49): um produto novo é um módulo novo, um relatório novo é um modelo novo no
+> repositório. A aplicação edita atributos e inativa; não cria.
 
 ---
 
@@ -90,10 +94,10 @@ próprio (ver RN-24).
 
 ### 4.1 Coleta
 
-- **F01** — Apuração agendada diária de todos os relatórios cadastrados, por produto.
+- **F01** — Apuração agendada diária de todos os relatórios ativos, por produto.
 - **F02** — Registro dos metadados de cada execução: data de referência, data/hora de
-  início e fim, status e duração.
-- **F03** — Cancelamento, pelo ADMINISTRADOR, de uma execução em andamento.
+  início e fim, status, duração e origem.
+- **F03** — *Aposentada.* Cancelamento de execução em andamento saiu do escopo (§5, D20).
 - **F04** — Solicitação de reprocessamento forçado, pelo ADMINISTRADOR, com motivo
   obrigatório e registro de auditoria.
 - **F05** — Expurgo automático dos artefatos após a janela de retenção.
@@ -107,8 +111,8 @@ próprio (ver RN-24).
 
 ### 4.3 Catálogo
 
-- **F10** — Cadastro, edição e remoção de produtos.
-- **F11** — Cadastro, edição e remoção de relatórios.
+- **F10** — Edição do nome do produto e inativação de produto.
+- **F11** — Edição de nome, descrição e tempo estimado de relatório, e inativação de relatório.
 
 ### 4.4 Identidade e acesso
 
@@ -125,13 +129,19 @@ próprio (ver RN-24).
 
 Explicitamente **não** faz parte desta versão:
 
+- **Cancelamento de execução em andamento.** O único mecanismo de interrupção é o limite de
+  tempo (RN-13). Derrubar uma execução é ação de operação, fora da aplicação, e o seu efeito
+  é `processado com erro`, não um status próprio.
+- **Apuração retroativa.** A data de referência nunca é informada por ninguém (RN-54).
+- **Criação e remoção de produto e de relatório pela aplicação** — o catálogo é derivado do
+  código (RN-49). Nada é removido fisicamente; o que existe é inativação.
 - **MFA** (autenticação multifator).
 - **Rotação obrigatória** da senha inicial do ADMINISTRADOR.
 - **Verificação de e-mail obrigatória** no autocadastro — o RELATOR entra assim que se
   cadastra, apenas sem acesso a relatório algum até ser vinculado a um grupo.
-- **Moderação/aprovação do autocadastro** — não há fila de aprovação; o controle de acesso
-  é feito pelo vínculo a grupo.
-- **Edição da sigla de um produto** e **edição do código de um relatório** após o cadastro.
+- **Moderação/aprovação do autocadastro** e **grupo padrão** — não há fila de aprovação nem
+  acesso concedido por omissão; todo acesso passa pela cadeia de permissão.
+- **Edição da sigla de um produto** e **edição do código de um relatório**.
 - **Agendamento configurável pelo usuário** — a periodicidade da coleta não é editável pela
   aplicação nesta versão.
 - **Notificação ativa** (e-mail, push) de conclusão ou falha de execução.
@@ -147,28 +157,32 @@ primária mede exatamente isso.
 
 ### Primária
 
-> **Taxa de apuração limpa:** percentual das execuções agendadas que terminam em
-> `processado com sucesso` — ou seja, sem falha e **dentro** do tempo estimado cadastrado.
+> **Taxa de apuração limpa:** percentual dos pares *Relatório + Data de referência* cuja
+> **execução vigente de origem agendada** terminou em `processado com sucesso` — sem falha e
+> dentro do tempo estimado cadastrado.
 >
 > **Meta: ≥ 98%, medida em janela móvel de 30 dias.** `PROVISÓRIO — a validar após o
 > primeiro mês de operação.`
 >
-> **Denominador:** execuções agendadas concluídas no período, **excluídas as canceladas** —
-> cancelamento é decisão operacional, não falha de apuração (RN-14), e mantê-lo no
-> denominador faria a métrica punir o uso correto de F03.
+> **Denominador:** um par por relatório ativo por dia. Contam-se **execuções vigentes**, não
+> tentativas: um relatório que falhou e foi salvo pela retentativa aparece como limpo, porque
+> para quem precisa do relatório ele foi entregue. **Reprocessamentos forçados ficam fora** —
+> não são apuração agendada e têm métrica secundária própria.
 >
 > A janela é de 30 dias, e não do ciclo diário, por uma razão aritmética: com o volume
 > previsto em RNF-03 (10 execuções por ciclo), uma única falha derruba o dia para 90% e a
-> meta de 98% seria inalcançável ou irrelevante. Em 30 dias a série tem ~300 execuções e a
-> meta passa a significar algo: no máximo 3 apurações sujas por mês.
+> meta de 98% seria inalcançável ou irrelevante. Em 30 dias a série tem ~300 pares e a meta
+> passa a significar algo: **no máximo 6 apurações sujas por mês**.
 
 ### Secundárias
 
 | Métrica | Meta | Por que importa |
 |---|---|---|
+| **Retentativas por mês** | **≤ 10** `PROVISÓRIO` | É o que a primária deixa de mostrar. A primária mede entrega; esta mede instabilidade. Sem ela, contar vigentes esconde problema |
 | Execuções presas em `em processamento` 30 min após o fim do ciclo | **0** | Mede se a detecção de término anômalo funciona. Qualquer valor > 0 é um bug, não uma tendência |
 | Reprocessamentos forçados por mês | **≤ 2** `PROVISÓRIO` | É o sintoma. Subiu, a apuração está instável |
 | Exportações que terminam em erro | **≤ 1%** `PROVISÓRIO` | Mede a metade do sistema que o usuário sente |
+| Exportações recusadas por limite de simultaneidade | **≤ 1%** `PROVISÓRIO` | Se subir, o teto de RNF-10 está apertado demais para o uso real |
 
 **Instrumentação:** todas devem ser mensuráveis sem consulta manual ao banco, rotuladas por
 sigla do produto e código do relatório. A instrumentação é obrigatória — métrica de PRD não
@@ -178,27 +192,12 @@ medida de verdade é métrica que não existe (guia, P3).
 
 ## 7. Conceitos do domínio
 
-Definição única por termo. Esta seção é a semente de `docs/glossario.md`, que ainda não
-existe e é exigido pelo P0 do guia.
+Definidos em [`glossario.md`](./glossario.md). Este PRD usa aqueles termos e não os
+redefine.
 
-| Termo | Definição | Não confundir com |
-|---|---|---|
-| **Produto** | Domínio de negócio com base transacional própria (Poupança, Cliente, Conta Corrente, Consórcio, Empréstimo). Tem **Sigla** e **Nome** | — |
-| **Sigla** | Identificador do produto, `^[A-Z]{1,20}$`. Informada no cadastro, **nunca derivada do nome** e **imutável**. Compõe o código do relatório e o caminho de armazenamento | *Nome do produto* |
-| **Nome do produto** | Texto livre de exibição, editável a qualquer momento. Não aparece em nenhum identificador | *Sigla* |
-| **Relatório** | A **definição** cadastrada: código, nome, descrição, produto e tempo estimado de execução. Existe uma vez e origina muitas Execuções | *Execução*, *Artefato* |
-| **Código do relatório** | `SIGLA-NNNN`, regex `^[A-Z]{1,20}-\d{4}$`. Os 4 dígitos são únicos **dentro do produto** — teto de 9.999 relatórios por produto. Imutável | — |
-| **Data de referência** | `yyyy-MM-dd`. O dia a que o dado se refere. É **parâmetro de negócio**: particiona o armazenamento e compõe a chave de unicidade | *Data de execução* |
-| **Data/hora de execução** | Quando a apuração de fato rodou. Serve para auditoria e para medir duração. Não particiona nada | *Data de referência* |
-| **Execução** | Uma apuração do par *Relatório + Data de referência*. Tem status, início, fim e duração | *Exportação* |
-| **Artefato** | O resultado gravado de uma Execução bem-sucedida, no repositório | *Arquivo exportado* |
-| **Exportação** | Conversão síncrona e sob demanda de um Artefato para um formato de entrega. Nunca é armazenada | *Execução*, *Coleta* |
-| **Download** | A entrega do arquivo exportado a um usuário. É registrado, e o registro **sobrevive** ao expurgo do Artefato | *Exportação* |
-| **Perfil** | Um de três: ADMINISTRADOR, GERENTE, RELATOR. Conjunto fechado, definido em código | *Role de relatório* |
-| **Role de relatório** | Permissão nomeada, criada pelo GERENTE, que agrupa acesso a relatórios. Conjunto **aberto** | *Perfil* |
-| **Grupo** | Coleção de usuários que recebe roles de relatório. É o elo entre a permissão e a pessoa | *Role de relatório* |
-| **Pendente de vínculo** | RELATOR que se autocadastrou e ainda não pertence a nenhum grupo. Consegue entrar, não alcança nenhum relatório | *Usuário inativo* |
-| **Tempo estimado de execução** | Duração esperada da apuração, em segundos, cadastrada por relatório. Governa o alerta e o timeout duro | *Duração real* |
+Os que mais mudaram de sentido nesta revisão, e que valem uma leitura antes de seguir:
+**Janela de leitura**, **Data de referência** (o rótulo é o dia da apuração, não o do
+movimento), **Execução vigente**, **Origem da execução**, **Catálogo** e **Inativação**.
 
 ---
 
@@ -207,23 +206,45 @@ existe e é exigido pelo P0 do guia.
 ### 8.1 Catálogo
 
 - **RN-01** — O Produto tem Sigla e Nome. A Sigla obedece a `^[A-Z]{1,20}$`, é única no
-  sistema e imutável após o cadastro. O Nome é livre e editável.
+  sistema, **declarada em código** e imutável. O Nome é livre e editável.
 - **RN-02** — O Código do Relatório é `SIGLA-NNNN` (regex `^[A-Z]{1,20}-\d{4}$`), formado
-  pela Sigla do produto ao qual pertence. É imutável após o cadastro.
+  pela Sigla do produto ao qual pertence. É declarado em código e imutável.
 - **RN-03** — Os 4 dígitos do Código do Relatório são únicos dentro de um mesmo Produto.
-  Dois produtos diferentes podem ter relatórios com o mesmo sufixo numérico.
-- **RN-04** — Todo relatório cadastrado tem **tempo estimado de execução** obrigatório, em
-  segundos inteiros e maior que zero.
-- **RN-05** — Um Produto só pode ser removido se não tiver relatórios cadastrados.
+  A violação impede o produto de iniciar — não é validação de formulário, é validação de
+  inicialização.
+- **RN-04** — Todo relatório tem **tempo estimado de execução** obrigatório, em segundos
+  inteiros e maior que zero. O valor inicial vem do código; a operação pode ajustá-lo.
+- **RN-05** — Um Produto só pode ser **inativado** se não tiver relatórios ativos.
+- **RN-48** — A soma dos tempos estimados dos relatórios ativos de um mesmo Produto não pode
+  ultrapassar o teto de RNF-19. É a única forma de RNF-04 ser uma promessa e não um desejo:
+  a janela do ciclo é consequência do catálogo, então o catálogo é onde ela se garante.
+- **RN-49** — O Catálogo é **derivado do código**. Produto e Relatório não são criados nem
+  removidos pela aplicação: cada produto anuncia a si e aos seus relatórios ao iniciar. A
+  aplicação edita apenas nome, descrição e tempo estimado.
+- **RN-50** — Nada do catálogo é removido fisicamente. Inativar retira do catálogo visível e
+  preserva toda a referência de execuções, auditoria e downloads.
 
 > Exemplos de código válidos: `POUPANCA-0001`, `CLIENTE-0005`, `CONTACORRENTE-1234`,
 > `CONSORCIO-9874`, `EMPRESTIMO-4567`.
 
 ### 8.2 Coleta
 
-- **RN-06** — A coleta é agendada e apura todos os relatórios cadastrados.
-- **RN-07** — A **Data de referência** é o parâmetro de negócio da execução. Quando não
-  informada, assume o dia em que a execução foi disparada, no fuso `America/Sao_Paulo`.
+- **RN-06** — A coleta é agendada e apura todos os relatórios **ativos**.
+- **RN-07** — A **Data de referência** é o dia em que o ciclo foi disparado, no fuso
+  `America/Sao_Paulo`. Como o ciclo roda de madrugada, o artefato de uma data contém o
+  movimento fechado do dia anterior — ver a advertência no glossário.
+- **RN-54** — A Data de referência **nunca é informada**. Não é parâmetro de entrada da
+  aplicação, do orquestrador nem do reprocessamento forçado. Apuração retroativa só produziria
+  dado correto se toda base transacional fosse temporal, o que não é garantido: rodar hoje uma
+  apuração carimbada com data passada gravaria os números de hoje sob o rótulo de ontem, e
+  nenhuma métrica do sistema conseguiria detectar isso.
+- **RN-44** — Existe no máximo **uma janela de leitura bem-sucedida por relatório por dia**.
+  Uma janela que falhou não entregou artefato e pode ser reaberta pela retentativa, que relê
+  **apenas** os relatórios que não concluíram. O número de retentativas é o de RNF-17.
+- **RN-45** — Antes de qualquer apuração começar, o ciclo **reserva** uma Execução para cada
+  relatório ativo, com início ainda não preenchido. Sem a reserva, um relatório que nunca chega
+  a ser apurado desaparece do denominador da métrica em vez de aparecer como falha — e o dia em
+  que metade dos relatórios não saiu seria contabilizado como 100% limpo.
 - **RN-08** — O armazenamento é organizado logicamente por
   **data de referência → sigla do produto → código do relatório**. Por depender apenas de
   identificadores imutáveis (RN-01, RN-02), o caminho de um artefato nunca muda.
@@ -231,11 +252,12 @@ existe e é exigido pelo P0 do guia.
   outra fonte pode contradizê-la.
 - **RN-10** — Nenhuma execução permanece em `em processamento` indefinidamente. Quando a
   apuração termina de forma anômala e não consegue registrar o próprio encerramento, o
-  orquestrador a encerra como `processado com erro`.
+  orquestrador encerra como `processado com erro` toda execução daquele produto que tenha
+  ficado aberta.
 
 ### 8.3 Ciclo de vida do status
 
-Cinco status. `em processamento` é o único não-terminal.
+Quatro status. `em processamento` é o único não-terminal.
 
 | Status | Produziu artefato válido | Usuário pode exportar | Bloqueia nova execução do par |
 |---|:---:|:---:|:---:|
@@ -243,62 +265,74 @@ Cinco status. `em processamento` é o único não-terminal.
 | `processado com sucesso` | ✅ | ✅ | ✅ |
 | `processado com alerta` | ✅ | ✅ | ✅ |
 | `processado com erro` | ❌ | ❌ | ❌ |
-| `cancelado` | ❌ | ❌ | ❌ |
 
 - **RN-11** — `processado com alerta` ocorre **somente** quando a execução concluiu **sem
-  nenhuma falha** e sua duração ultrapassou o tempo estimado do relatório. O artefato é
-  válido e utilizável; o alerta sinaliza degradação de desempenho, não de conteúdo.
+  nenhuma falha** e sua duração ultrapassou o tempo estimado registrado na própria execução
+  (RN-47). O artefato é válido e utilizável; o alerta sinaliza degradação de desempenho, não
+  de conteúdo.
 - **RN-12** — Qualquer falha registrada durante a execução resulta em
   `processado com erro`, independentemente da duração. **O erro sempre prevalece sobre o
   alerta.**
-- **RN-13** — Ao atingir **o dobro** do tempo estimado, a execução é interrompida por
-  timeout duro e encerrada como `processado com erro`.
-- **RN-14** — O ADMINISTRADOR pode cancelar uma execução em `em processamento`. Ela é
-  encerrada como `cancelado`, e qualquer artefato parcial é descartado. Cancelamento é
-  interrupção deliberada e **não** conta como falha nas métricas.
-- **RN-15** — Uma execução em status terminal não muda mais de status.
+- **RN-13** — A interrupção por tempo tem **dois limites, com papéis distintos**:
+  - **Limite do relatório** — ao atingir **o dobro** do tempo estimado, a apuração daquele
+    relatório é abortada e encerrada como `processado com erro`. Os demais relatórios do mesmo
+    produto continuam. É regra de negócio e alimenta a métrica.
+  - **Limite de segurança do produto** — o orquestrador interrompe a apuração inteira do produto
+    quando ela ultrapassa o dobro da soma dos tempos estimados, com folga. Existe para o caso de
+    a apuração estar travada a ponto de não conseguir aplicar o próprio limite, e o seu efeito
+    recai em RN-10.
+
+  Não são o mesmo prazo implementado duas vezes: o primeiro mede um relatório, o segundo é um
+  interruptor de emergência.
+- **RN-14** — *Aposentada.* O cancelamento de execução saiu do escopo (§5, D20).
+- **RN-15** — Uma execução em status terminal não muda mais de status. Consequência direta:
+  uma retentativa **cria uma nova Execução**, nunca reabre a anterior.
 - **RN-42** — Só é possível exportar um relatório cuja execução vigente para aquela data de
   referência esteja em `processado com sucesso` ou `processado com alerta`. Nos demais
   status não existe artefato válido e a exportação é recusada.
 - **RN-43** — Enquanto existir execução do par em `em processamento`, nova execução do
   mesmo par é recusada. É a mesma recusa de RN-18: evento de auditoria, não Execução.
 
-### 8.4 Unicidade e reprocessamento
+### 8.4 Unicidade, retentativa e reprocessamento
 
 - **RN-16** — Existe no máximo **uma execução vigente** para o par
   *Data de referência + Código do relatório*.
+- **RN-46** — A Execução é um **registro imutável**. "Vigente" é um **ponteiro**, não um
+  status: as execuções anteriores permanecem, marcadas como não-vigentes. Toda Execução
+  declara a sua **origem**: `agendada`, `retentativa` ou `reprocessamento forçado`.
+- **RN-47** — O tempo estimado é **copiado para dentro da Execução** no momento do disparo.
+  Alterar o catálogo não reclassifica execuções passadas, e a métrica permanece comparável ao
+  longo do tempo.
 - **RN-17** — Uma nova execução para um par cuja execução vigente esteja em
   `processado com sucesso` ou `processado com alerta` é **recusada**. Os artefatos e os
   metadados originais permanecem intactos.
 - **RN-18** — A recusa de RN-17 é registrada como **evento de auditoria** — com solicitante,
   momento e Correlation ID — e **não** cria uma nova Execução. Uma tentativa recusada nunca
   aparece como falha de apuração.
-- **RN-19** — Um par cuja execução vigente esteja em `processado com erro` ou `cancelado`
-  pode ser executado novamente sem qualquer autorização especial: não há artefato válido a
-  preservar.
+- **RN-19** — Um par cuja execução vigente esteja em `processado com erro` pode ser executado
+  novamente sem qualquer autorização especial: não há artefato válido a preservar.
 - **RN-20** — O ADMINISTRADOR pode solicitar o **reprocessamento forçado** de um par já
-  concluído com sucesso ou alerta. A solicitação invalida a execução anterior, gera nova
-  apuração e **sobrescreve** os artefatos.
+  concluído com sucesso ou alerta, **para a data de referência corrente**. A solicitação
+  invalida a execução anterior, gera nova apuração e **sobrescreve** os artefatos.
 - **RN-21** — Toda solicitação de reprocessamento forçado exige **motivo textual
   obrigatório** e é registrada com o identificador do solicitante, o motivo e o
-  Correlation ID.
+  Correlation ID. A execução invalidada permanece, ligada a esse registro.
 
 ### 8.5 Acesso e autorização
 
 - **RN-22** — A concessão de acesso segue a cadeia
-  **Relatório → Role de relatório → Grupo → Usuário**. Todos os elos são **N:N**: um
-  relatório pode ter várias roles, uma role pode cobrir vários relatórios, um grupo pode ter
-  várias roles e um usuário pode pertencer a vários grupos. O acesso efetivo é a **união**
-  de todos os caminhos.
+  **Relatório → Role de relatório → Grupo → Usuário**. Todos os elos são **N:N**. O acesso
+  efetivo é a **união** de todos os caminhos.
 - **RN-23** — Um RELATOR só enxerga e só exporta os relatórios alcançados pela sua cadeia de
   permissão. Relatório fora dela **não aparece na listagem e não é acessível por acesso
   direto**.
-- **RN-24** — O ADMINISTRADOR acessa todos os relatórios cadastrados **sem** passar pela
-  cadeia de permissão. É a única exceção de autorização do sistema e exige teste automatizado
-  dedicado.
+- **RN-24** — O ADMINISTRADOR acessa todos os relatórios **sem** passar pela cadeia de
+  permissão. É a única exceção de autorização do sistema e exige teste automatizado dedicado.
 - **RN-25** — O GERENTE administra o acesso mas **não** exporta relatórios.
 - **RN-26** — O GERENTE não pode criar nem promover outro usuário a GERENTE ou a
-  ADMINISTRADOR.
+  ADMINISTRADOR. Perfil e Role de relatório são objetos de **tipos distintos**, e o GERENTE
+  opera apenas sobre os segundos — a separação é estrutural, não uma verificação que se possa
+  esquecer de escrever.
 - **RN-27** — O autocadastro público cria **exclusivamente** usuários de perfil RELATOR,
   sempre no estado *pendente de vínculo*.
 - **RN-28** — Um RELATOR *pendente de vínculo* consegue entrar na aplicação e recebe uma
@@ -325,21 +359,35 @@ Cinco status. `em processamento` é o único não-terminal.
 
 - **RN-33** — O artefato é apurado já paginado e posicionado para leitura em página. Traduzir
   esse posicionamento para planilha produz um resultado ilegível; por isso o **XLSX ignora a
-  paginação** e é entregue como planilha contínua, sem cabeçalho e rodapé repetidos.
+  paginação** e é entregue como planilha contínua, sem cabeçalho e rodapé repetidos. Isso
+  **não** é obtido por configuração de exportação isolada: impõe uma convenção de autoria a
+  todo modelo de relatório do projeto, declarada na arquitetura.
 - **RN-34** — O **CSV é o dataset bruto** da consulta principal do relatório — sem
   subrelatórios, sem imagens e sem formatação. É o formato para quem vai reprocessar o dado,
   não para quem vai lê-lo.
 - **RN-35** — Todo download é registrado com usuário, relatório, data de referência, formato
-  e momento.
+  e momento, **com cópia dos identificadores** como estavam naquele instante.
+- **RN-52** — A Coleta recusa apurar relatório cujo dataset ultrapasse o teto de RNF-06,
+  encerrando a execução como `processado com erro` com motivo explícito. Sem essa recusa o teto
+  é decorativo: a violação só apareceria como falha de memória na exportação, dias depois.
+- **RN-53** — O número de exportações simultâneas é limitado (RNF-10). A requisição excedente é
+  **recusada de imediato**, com indicação de repetir mais tarde — não é enfileirada, porque
+  RN-30 exige resposta na mesma requisição.
 
 ### 8.7 Retenção
 
-- **RN-36** — Os artefatos ficam disponíveis por uma **janela de retenção de 7 dias**,
+Três ciclos de vida independentes. Confundi-los é o que faria a métrica de 30 dias ser
+calculada sobre dados que já não existem.
+
+- **RN-36** — Os **artefatos** ficam disponíveis por uma **janela de retenção de 7 dias**,
   contada a partir da data de referência. O valor é configurável pela operação.
 - **RN-37** — Expirada a janela, os artefatos são expurgados automaticamente e aquela data de
   referência deixa de aparecer na listagem.
-- **RN-38** — O **histórico de downloads não é expurgado** junto com os artefatos: sobrevive
-  indefinidamente à remoção do dado que registrou.
+- **RN-51** — Os **metadados de Execução nunca são expurgados**. A métrica primária tem janela
+  de 30 dias e a retenção de artefato é de 7: os metadados precisam sobreviver ao artefato, ou
+  a métrica passa a ser calculada sobre uma série truncada sem que ninguém perceba.
+- **RN-38** — O **histórico de downloads não é expurgado**: sobrevive indefinidamente à
+  remoção do dado que registrou e à inativação do relatório.
 - **RN-39** — Uma solicitação de exportação de artefato já expurgado é recusada com mensagem
   explícita de indisponibilidade por retenção — nunca com erro genérico.
 
@@ -360,25 +408,29 @@ inexistente.
 
 > **Os identificadores são permanentes.** Um `RF-NN` nunca é renumerado nem reaproveitado:
 > requisito novo recebe o próximo número livre, ainda que pertença a um grupo anterior;
-> requisito descartado tem o ID aposentado. É o que permite que teste, issue e commit
-> citem um requisito e a referência continue válida seis meses depois.
+> requisito descartado tem o ID **aposentado** e permanece listado como tal.
 
 ### Coleta
 
 | ID | Requisito | Regras |
 |---|---|---|
-| **RF-01** | A apuração agendada executa todos os relatórios cadastrados e grava um artefato por relatório concluído com sucesso ou alerta | RN-06, RN-08 |
-| **RF-02** | Cada execução registra data de referência, início, fim, duração e status | RN-07, RN-09 |
+| **RF-01** | A apuração agendada executa todos os relatórios ativos e grava um artefato por relatório concluído com sucesso ou alerta | RN-06, RN-08 |
+| **RF-02** | Cada execução registra data de referência, início, fim, duração, status e origem | RN-07, RN-09, RN-46 |
 | **RF-03** | Execução que ultrapassa o tempo estimado sem falhas termina em `processado com alerta` | RN-11 |
 | **RF-04** | Execução com qualquer falha termina em `processado com erro`, mesmo tendo ultrapassado o tempo estimado | RN-12 |
-| **RF-05** | Execução que atinge o dobro do tempo estimado é interrompida e termina em `processado com erro` | RN-13 |
+| **RF-05** | Relatório que atinge o dobro do seu tempo estimado é abortado e termina em `processado com erro`, **sem impedir a apuração dos demais relatórios do mesmo produto** | RN-13 |
 | **RF-06** | Execução cujo processo termina de forma anômala é encerrada como `processado com erro`, sem permanecer em `em processamento` | RN-10 |
-| **RF-07** | O ADMINISTRADOR cancela uma execução em andamento; ela termina em `cancelado` e artefatos parciais são descartados | RN-14 |
+| **RF-07** | *Aposentado.* Cancelamento de execução saiu do escopo | — |
 | **RF-08** | Nova execução de par com execução vigente em sucesso ou alerta é recusada, sem alterar artefatos nem criar execução | RN-16, RN-17, RN-18 |
-| **RF-09** | Nova execução de par com execução vigente em erro ou cancelado é aceita normalmente | RN-19 |
-| **RF-10** | O ADMINISTRADOR solicita reprocessamento forçado informando motivo; a execução anterior é invalidada e os artefatos sobrescritos | RN-20, RN-21 |
+| **RF-09** | Nova execução de par com execução vigente em erro é aceita normalmente | RN-19 |
+| **RF-10** | O ADMINISTRADOR solicita reprocessamento forçado informando motivo; a execução anterior é invalidada e permanece registrada, e os artefatos são sobrescritos | RN-20, RN-21, RN-46 |
 | **RF-11** | Solicitação de reprocessamento forçado sem motivo é rejeitada | RN-21 |
-| **RF-12** | Usuário de perfil diferente de ADMINISTRADOR não consegue cancelar execução nem solicitar reprocessamento forçado | RN-14, RN-20 |
+| **RF-12** | Usuário de perfil diferente de ADMINISTRADOR não consegue solicitar reprocessamento forçado | RN-20 |
+| **RF-45** | A reserva do ciclo cria uma execução por relatório ativo antes de qualquer apuração começar | RN-45 |
+| **RF-46** | Execução que falha origina nova execução de origem `retentativa`; a anterior permanece e passa a não-vigente | RN-15, RN-44, RN-46 |
+| **RF-49** | A Coleta recusa apurar relatório cujo dataset ultrapasse o teto e registra erro com motivo explícito | RN-52 |
+| **RF-52** | A métrica primária considera exclusivamente execuções vigentes de origem `agendada` | §6 |
+| **RF-53** | Nenhuma interface aceita data de referência como entrada | RN-54 |
 
 ### Exportação e consulta
 
@@ -388,26 +440,32 @@ inexistente.
 | **RF-14** | A listagem de um RELATOR contém exclusivamente os relatórios alcançados pela sua cadeia de permissão | RN-22, RN-23 |
 | **RF-15** | Tentativa de acesso direto a relatório fora da permissão do usuário é negada | RN-23 |
 | **RF-16** | A listagem de um RELATOR pendente de vínculo vem vazia, acompanhada da mensagem de aguardo | RN-28 |
-| **RF-17** | O ADMINISTRADOR enxerga e exporta todos os relatórios cadastrados | RN-24 |
+| **RF-17** | O ADMINISTRADOR enxerga e exporta todos os relatórios | RN-24 |
 | **RF-18** | O GERENTE não consegue exportar relatório algum | RN-25 |
 | **RF-19** | A exportação devolve o arquivo no formato solicitado dentro da mesma requisição, sem criar registro de status | RN-30 |
 | **RF-20** | Só é possível exportar relatório cuja execução vigente esteja em sucesso ou alerta | RN-42 |
-| **RF-21** | A exportação em XLSX é entregue como planilha contínua, sem repetição de cabeçalho e rodapé por página | RN-33 |
+| **RF-21** | A exportação em XLSX é entregue como planilha contínua, com o cabeçalho de coluna aparecendo **exatamente uma vez** | RN-33 |
 | **RF-22** | A exportação em CSV entrega o dataset bruto da consulta principal | RN-34 |
 | **RF-23** | Todo download é registrado e consultável pelo ADMINISTRADOR | RN-35, F09 |
 | **RF-24** | Solicitação de artefato já expurgado é recusada com mensagem de indisponibilidade por retenção | RN-39 |
+| **RF-48** | Exportação solicitada acima do limite de simultaneidade é recusada de imediato, com indicação de repetir mais tarde | RN-53 |
+| **RF-51** | O histórico de downloads exibe os identificadores como estavam no momento do download, mesmo após edição de nome ou inativação | RN-35, RN-38, RN-50 |
 
 ### Catálogo
 
 | ID | Requisito | Regras |
 |---|---|---|
-| **RF-25** | O cadastro de produto exige Sigla válida e única, e Nome; a Sigla não é editável depois | RN-01 |
-| **RF-26** | O cadastro de relatório gera código no formato `SIGLA-NNNN`, único dentro do produto | RN-02, RN-03 |
-| **RF-27** | O cadastro de relatório exige tempo estimado de execução em segundos, maior que zero | RN-04 |
-| **RF-28** | Remoção de produto com relatórios cadastrados é rejeitada | RN-05 |
-| **RF-41** | Nome e descrição de produto e de relatório são editáveis; sigla e código não | RN-01, RN-02 |
-| **RF-42** | Remoção de relatório é rejeitada enquanto existir execução dele dentro da janela de retenção | Q2 |
+| **RF-25** | *Aposentado.* Cadastro de produto pela aplicação não existe | RN-49 |
+| **RF-26** | *Aposentado.* Cadastro de relatório pela aplicação não existe | RN-49 |
+| **RF-27** | Todo relatório tem tempo estimado em segundos maior que zero, validado na inicialização e na edição | RN-04 |
+| **RF-28** | *Aposentado.* Substituído por RF-50 | RN-05 |
+| **RF-41** | Nome do produto, e nome, descrição e tempo estimado do relatório são editáveis; sigla e código não | RN-01, RN-02, RN-04 |
+| **RF-42** | *Aposentado.* Não há remoção de relatório a bloquear — há inativação | RN-50 |
 | **RF-43** | Remoção de role de relatório ou de grupo revoga o acesso concedido por eles, sem afetar outros caminhos da cadeia | RN-22 |
+| **RF-44** | A inicialização de um produto é recusada se dois de seus relatórios declararem o mesmo código | RN-03, RN-49 |
+| **RF-47** | A edição do tempo estimado é recusada se fizer a soma do produto ultrapassar o teto | RN-48 |
+| **RF-50** | A inativação de um produto é recusada enquanto houver relatório ativo nele | RN-05 |
+| **RF-54** | Relatório e produto inativados desaparecem da listagem e permanecem referenciáveis por execuções, auditoria e downloads | RN-50 |
 
 ### Identidade e acesso
 
@@ -418,10 +476,11 @@ inexistente.
 | **RF-31** | O GERENTE cria roles de relatório e as vincula a relatórios e a grupos | RN-22 |
 | **RF-32** | O GERENTE inclui e remove usuários RELATOR em grupos | RN-22 |
 | **RF-33** | Usuário em múltiplos grupos acessa a união dos relatórios de todos eles | RN-22 |
-| **RF-34** | O GERENTE não consegue criar nem promover usuário a GERENTE ou ADMINISTRADOR | RN-26 |
+| **RF-34** | O GERENTE não consegue criar nem promover usuário a GERENTE ou ADMINISTRADOR, nem por manipulação direta da requisição | RN-26 |
 | **RF-35** | ADMINISTRADOR e GERENTE conseguem remover um usuário RELATOR | matriz §3.2 |
 | **RF-36** | Removido o vínculo de um usuário, seu acesso aos relatórios correspondentes cessa imediatamente | RN-22 |
 | **RF-37** | Qualquer usuário troca a própria senha e recupera senha esquecida por e-mail | RN-29 |
+| **RF-55** | Um RELATOR sem grupo não alcança relatório algum — não há acesso concedido por omissão | RN-22, §5 |
 
 ### Erros
 
@@ -435,73 +494,109 @@ inexistente.
 
 ## 10. Requisitos não-funcionais
 
-> Os números abaixo são **pontos de partida**, não medições. Estão marcados `PROVISÓRIO`
-> justamente para serem contestados: um número errado e visível provoca a discussão; a
-> ausência de número não provoca nada. A primeira versão executa somente em ambiente local
-> — não há metas de disponibilidade nem de escala horizontal.
+> Os números foram **recalibrados nesta revisão** contra a máquina alvo — 23 GB de RAM,
+> 4 vCPUs e ~20 GB livres em disco (RA-50: a primeira versão executa em ambiente local).
+> Os valores anteriores (250 MB de artefato, 500 mil linhas, 10 exportações simultâneas) não
+> cabiam: implicavam ~10 GB de heap só de artefatos vivos e 17,5 GB de disco só de retenção.
+> Continuam marcados `PROVISÓRIO` porque devem ser **medidos**, não estimados — há ticket de
+> calibração com `k6` para substituí-los por números observados.
 
 | ID | Requisito | Valor |
 |---|---|---|
-| **RNF-01** | Relatórios cadastrados no MVP | 10 (2 por produto, 5 produtos) `PROVISÓRIO` |
+| **RNF-01** | Relatórios no MVP | 10 (2 por produto, 5 produtos) `PROVISÓRIO` |
 | **RNF-02** | Teto de relatórios por produto | 9.999 — decorre de RN-03, não é provisório |
 | **RNF-03** | Execuções por ciclo diário | 10 `PROVISÓRIO` |
-| **RNF-04** | Janela do ciclo de coleta | Concluir em até 60 min `PROVISÓRIO` |
-| **RNF-05** | Tamanho máximo de artefato | 250 MB `PROVISÓRIO` |
-| **RNF-06** | Volume máximo do dataset de um relatório | 500.000 linhas `PROVISÓRIO` |
+| **RNF-04** | Janela do ciclo de coleta | Concluir em até 60 min — **garantida por RN-48**, não estimada |
+| **RNF-05** | Tamanho máximo de artefato | **25 MB** `PROVISÓRIO` |
+| **RNF-06** | Volume máximo do dataset de um relatório | **50.000 linhas** `PROVISÓRIO` |
 | **RNF-07** | Latência de exportação, p95 — PDF | ≤ 15 s `PROVISÓRIO` |
 | **RNF-08** | Latência de exportação, p95 — XLSX e DOCX | ≤ 25 s `PROVISÓRIO` |
 | **RNF-09** | Latência de exportação, p95 — CSV | ≤ 5 s `PROVISÓRIO` |
-| **RNF-10** | Exportações simultâneas suportadas | 10 `PROVISÓRIO` |
-| **RNF-11** | Usuários simultâneos | 25 `PROVISÓRIO` |
+| **RNF-10** | Exportações simultâneas suportadas | **2** `PROVISÓRIO` |
+| **RNF-11** | Usuários simultâneos | 25 `PROVISÓRIO` — navegar não é exportar |
 | **RNF-12** | Janela de retenção dos artefatos | 7 dias, configurável — RN-36 |
 | **RNF-13** | Retenção do histórico de downloads | Indefinida — RN-38 |
 | **RNF-14** | Fuso horário de todo o sistema | `America/Sao_Paulo` |
 | **RNF-15** | Idioma da interface e das mensagens | pt-BR |
+| **RNF-16** | Retenção dos metadados de execução | **Indefinida** — RN-51 |
+| **RNF-17** | Retentativas por relatório em um ciclo | **2** `PROVISÓRIO` |
+| **RNF-18** | Produtos apurados simultaneamente | **2** `PROVISÓRIO` — 4 vCPUs disputados por toda a pilha |
+| **RNF-19** | Teto da soma dos tempos estimados de um produto | **10 min** — deriva de RNF-04 e RNF-18: 5 produtos em ondas de 2 dão 3 ondas de 20 min |
+| **RNF-20** | Horário do ciclo | **03h00**, diário, todos os dias |
 
 ---
 
-## 11. Decisões assumidas nesta revisão
+## 11. Decisões assumidas
 
-Cada linha resolve uma ambiguidade ou contradição da versão anterior deste PRD. Estão
-listadas para poderem ser contestadas individualmente.
+### 11.1 Revisão anterior (D01–D19)
 
-| # | O que estava ambíguo | Decisão | Onde |
+Permanecem válidas, com uma exceção anotada.
+
+| # | Decisão | Situação |
+|---|---|---|
+| D01 | O PRD trata só do eixo de produto | Vigente |
+| D02 | **O erro sempre prevalece sobre o alerta** | Vigente — RN-11, RN-12 |
+| D03 | Data de referência ≠ data de execução | Vigente, com D25 estreitando-a |
+| D04 | ADMINISTRADOR com acesso irrestrito, com teste dedicado | Vigente — RN-24 |
+| D05 | Unicidade vale para a execução **vigente**; a recusa é evento de auditoria | Vigente — reforçada por D28 |
+| D06 | Quinto status terminal `cancelado` | **REVERTIDA por D20** |
+| D07 | Sigla imutável separada do Nome editável | Vigente |
+| D08 | Cadeia N:N em todos os elos, acesso pela união | Vigente — RN-22 |
+| D09 | O ciclo de status vale só para a Execução da Coleta | Vigente — RN-30 |
+| D10 | Reprocessamento forçado é funcionalidade autenticada e auditada | Vigente — F04 |
+| D11 | Retenção é regra de negócio, não configuração | Vigente, ampliada por D29 |
+| D12 | Sucesso e alerta bloqueiam nova execução; erro libera | Vigente |
+| D13 | Taxa de apuração limpa como métrica primária | Vigente, redefinida por D27 |
+| D14 | ADMINISTRADOR também remove RELATOR | Vigente |
+| D15 | Listagem filtrada por permissão, inclusive contra acesso direto | Vigente |
+| D16 | Autocadastro só de RELATOR, sem verificação nem moderação | Vigente |
+| D17 | Tempo estimado obrigatório | Vigente |
+| D18 | PDF e DOCX paginam; XLSX ignora paginação; CSV é dataset bruto | Vigente, com o custo revelado por D24 |
+| D19 | Metas não-funcionais numéricas e provisórias | Vigente, recalibradas por D26 |
+
+### 11.2 Esta revisão (D20–D33)
+
+| # | O que estava ambíguo ou errado | Decisão | Onde |
 |---|---|---|---|
-| D01 | O PRD misturava produto e arquitetura | O PRD trata só do eixo de produto; o técnico foi remetido a `arquitetura-inicial.md` | §1, §13 |
-| D02 | "O alerta prevalece sobre o erro" mascarava falhas entre 1× e 2× o tempo estimado | **O erro sempre prevalece.** Alerta só sem falha | RN-11, RN-12 |
-| D03 | "A data é o dia em que o job rodou" conflitava com "data de referência" | **Dois conceitos distintos.** A data de referência é parâmetro de negócio e admite apuração retroativa | RN-07, §7 |
-| D04 | ADMINISTRADOR podia gerar relatórios, mas não havia ramo para ele na cadeia de permissão | **Acesso irrestrito, sem passar pela cadeia**, com teste dedicado | RN-24 |
-| D05 | "O par é único" contradizia "a execução recusada é registrada como erro" | A unicidade vale para a **execução vigente**; a recusa é **evento de auditoria**, não Execução | RN-16, RN-18 |
-| D06 | O ADMINISTRADOR podia cancelar, mas `cancelado` não existia entre os status | **Quinto status terminal `cancelado`**, que não conta como falha | RN-14, §8.3 |
-| D07 | "Nome do produto" era ao mesmo tempo rótulo, parte do código e parte do caminho | **Sigla imutável** separada do **Nome** editável | RN-01, §7 |
-| D08 | A cadeia relatório→role→grupo→usuário não declarava cardinalidades | **N:N em todos os elos**, acesso pela união dos caminhos | RN-22 |
-| D09 | O ciclo de status parecia valer também para a exportação síncrona | Vale **só para a Execução da Coleta** | RN-30 |
-| D10 | O reprocessamento forçado era parâmetro de orquestração, mas exigia identificar o solicitante | Vira **funcionalidade da aplicação**, autenticada e auditada | F04, RN-20 |
-| D11 | A retenção de 7 dias era só configuração de infraestrutura | Vira **regra de negócio**, com o comportamento visível ao usuário | RN-36 a RN-39 |
-| D12 | Não se dizia se erro, alerta ou cancelado bloqueavam nova execução | **Sucesso e alerta bloqueiam** (há artefato); **erro e cancelado liberam** | RN-17, RN-19 |
-| D13 | Não havia métrica de sucesso | **Taxa de apuração limpa** como primária, mais três secundárias | §6 |
-| D14 | O ADMINISTRADOR não podia remover RELATOR, embora removesse GERENTE | **ADMINISTRADOR também remove RELATOR** | §3.2, RF-35 |
-| D15 | Não se dizia se a listagem era filtrada por permissão | **Filtrada**, inclusive contra acesso direto | RN-23 |
-| D16 | *Sign up* não dizia qual perfil, nem se exigia verificação de e-mail | **Só RELATOR**, sem verificação obrigatória e sem moderação; **recuperação de senha entra no MVP** | RN-27, F14 |
-| D17 | O tempo estimado governava alerta e timeout, mas não constava do cadastro | **Obrigatório**, em segundos, maior que zero | RN-04 |
-| D18 | O texto dizia que exportar CSV pelo mecanismo de renderização "sai feio", mas o CSV não passa por ele | **PDF e DOCX paginam; XLSX ignora a paginação; CSV é dataset bruto** | RN-32 a RN-34 |
-| D19 | Nenhum requisito não-funcional era quantificado | **Metas provisórias numéricas**, explicitamente marcadas | §10 |
+| **D20** | O cancelamento (F03/RN-14) operava sobre o relatório, mas a unidade de execução é o produto — a regra não era implementável | **Cancelamento removido do escopo.** O único interruptor é o limite de tempo. Reverte D06 e elimina o status `cancelado` | §5, RN-13 |
+| **D21** | "A base é lida uma vez por dia" tinha duas leituras incompatíveis | **Leitura literal:** uma janela de leitura por produto. O que se conta é a leitura **bem-sucedida** por relatório; retentativa relê só o que faltou | RN-44 |
+| **D22** | A retentativa reabriria a base no mesmo dia, contra D21, e RN-19 exigia poder refazer | "Uma vez" = uma leitura **bem-sucedida**. Retentativa permitida e limitada (RNF-17). **Preço aceito:** relatórios do mesmo produto podem ver instantes diferentes da base | RN-44 |
+| **D23** | RN-13 media o relatório, mas o orquestrador só enxerga o produto | **Dois limites com papéis distintos:** o do relatório é regra de negócio; o do produto é interruptor de emergência | RN-13 |
+| **D24** | Não se dizia quando a Execução passa a existir — e sem isso a métrica mentiria | **Reserva do ciclo** antes de qualquer apuração | RN-45 |
+| **D25** | RN-07 admitia data de referência informada, o que exigiria base transacional temporal | **Sem retroatividade.** A data nunca é informada | RN-54 |
+| **D26** | RNF-04 era um desejo; nada impedia o catálogo de estourá-la. E os números de §10 não cabiam na máquina | **RNF-04 vira validação de catálogo** (RN-48) e os limites são recalibrados | RN-48, §10 |
+| **D27** | O denominador da métrica não dizia se contava tentativas ou entregas | Conta **execuções vigentes agendadas**; retentativa ganha métrica própria; a meta é 98% = 6 sujas/mês (a versão anterior dizia 98% e "3 sujas", que não fecha) | §6 |
+| **D28** | RN-15 proíbe mudar status terminal, mas a retentativa precisaria reabrir a execução | **Execução imutável; "vigente" é ponteiro.** Tempo estimado copiado para dentro dela | RN-46, RN-47 |
+| **D29** | Havia dois ciclos de vida declarados; são três, e a métrica de 30 dias dependia do terceiro | **Artefato 7 dias, Execução nunca, Download indefinido.** Catálogo por inativação, não remoção | RN-50, RN-51 |
+| **D30** | F10/F11 permitiam cadastrar produto e relatório, mas ambos são código | **Catálogo derivado do código.** A aplicação edita e inativa; não cria | RN-49 |
+| **D31** | Nada impunha RN-26 além de uma verificação no código | Perfil e Role de relatório passam a ser objetos de **tipos distintos** — a separação é estrutural | RN-26 |
+| **D32** | Q7 perguntava por relatório visível a todos | **Não.** Sem grupo padrão; todo acesso passa pela cadeia | §5, RF-55 |
+| **D33** | RN-33 prometia XLSX sem cabeçalho repetido, o que não é configuração de exportação | Mantido, com o custo explicitado: **convenção de autoria** obrigatória em todo modelo, com teste por relatório | RN-33, RF-21 |
 
 ---
 
 ## 12. Questões em aberto
 
-| # | Questão | Impacto | Precisa ser resolvida antes de |
+As nove questões da revisão anterior foram respondidas.
+
+| # | Questão | Resposta | Onde |
 |---|---|---|---|
-| **Q1** | Qual a periodicidade e o horário exatos da coleta agendada? | Define a janela operacional e a meta de RNF-04 | Implementar o agendamento |
-| **Q2** | Quando um relatório é removido do catálogo, o que acontece com os artefatos, as execuções e o histórico de downloads já registrados? RF-42 propõe bloquear a remoção enquanto houver execução dentro da janela de retenção — falta confirmar | Integridade do histórico e do registro de downloads | Implementar F11 (remoção de relatório) |
-| **Q3** | Alterar o tempo estimado de um relatório reclassifica execuções passadas, ou o valor vigente à época fica congelado na execução? | Comparabilidade histórica da métrica primária | Implementar RF-41 |
-| **Q4** | O reprocessamento forçado tem limite de retroatividade — pode alcançar uma data já fora da janela de retenção? | Interação entre RN-20 e RN-37 | Implementar F04 |
-| **Q5** | Os números provisórios de §10 valem? Qual o volume real esperado por relatório? | Todas as metas de latência e capacidade | Fechar os critérios de aceite não-funcionais |
-| **Q6** | A meta de 99% da métrica primária é adequada para o cenário? | A métrica de sucesso do produto | Instrumentar P3 |
-| **Q7** | Existe algum relatório que deva ser visível a todos os RELATORES sem vínculo específico? | Pode exigir o conceito de grupo padrão | Implementar RN-22 |
-| **Q8** | A janela de retenção conta a partir da **data de referência** (RN-36) ou da data de gravação do artefato? Com apuração retroativa (RN-07) as duas divergem: um artefato de data antiga nasceria já expirado | Define se backfill é utilizável | Implementar F05 (expurgo) |
-| **Q9** | RNF-04 fixa 60 min para o ciclo, mas RN-13 permite que cada execução chegue ao dobro do tempo estimado. Nada garante que a soma caiba na janela — as execuções são paralelas? Há teto de tempo estimado por relatório? | Viabilidade da janela operacional | Fechar RNF-04 |
+| Q1 | Periodicidade e horário da coleta | Diária, 03h00, `America/Sao_Paulo` | RNF-20 |
+| Q2 | O que acontece ao remover um relatório | Não há remoção — há inativação, e nada é destruído | RN-50 |
+| Q3 | Alterar o tempo estimado reclassifica o passado? | Não. O valor é copiado para a Execução | RN-47 |
+| Q4 | Reprocessamento forçado alcança data passada? | Não. Só a data corrente | RN-20, RN-54 |
+| Q5 | Os números provisórios valem? | Não valiam. Recalibrados, com ticket de medição | §10 |
+| Q6 | A meta é 98% ou 99%? | **98%**, e a frase explicativa passa a dizer 6 sujas/mês | §6 |
+| Q7 | Relatório visível a todo RELATOR? | Não | §5, RF-55 |
+| Q8 | A retenção conta da data de referência ou da gravação? | São a mesma data, dado que não há retroatividade | RN-54, RN-36 |
+| Q9 | Execuções paralelas ou sequenciais? | Paralelas, 2 produtos por vez, com teto de catálogo | RNF-18, RN-48 |
+
+**Ainda em aberto**
+
+| # | Questão | Precisa ser resolvida antes de |
+|---|---|---|
+| **Q10** | Os limites recalibrados de §10 resistem à medição real? | Fechar os critérios de aceite não-funcionais |
+| **Q11** | A meta de 98% é adequada depois do primeiro mês de operação? | Encerrar o `PROVISÓRIO` da métrica primária |
 
 ---
 
@@ -509,8 +604,9 @@ listadas para poderem ser contestadas individualmente.
 
 | Documento | Papel | Estado |
 |---|---|---|
-| [`arquitetura-inicial.md`](./arquitetura-inicial.md) | Eixo de engenharia: stack, módulos, decisões arquiteturais (`RA-NN`), trade-offs. Contém o conteúdo técnico retirado deste PRD e a rastreabilidade RA ↔ RN | Existe |
+| [`glossario.md`](./glossario.md) | Linguagem ubíqua. Fonte única das definições | Existe |
+| [`arquitetura-inicial.md`](./arquitetura-inicial.md) | Eixo de engenharia: stack, módulos, decisões (`RA-NN`), trade-offs | Existe |
+| [`adr/`](./adr/) | Uma decisão estruturante por arquivo | Existe |
 | [`guias/guia-app-web.md`](./guias/guia-app-web.md) | Método: define os artefatos exigidos em cada fase | Existe |
-| `glossario.md` | Linguagem ubíqua completa. A seção 7 deste PRD é a semente | **Não existe** — exigido por P0 |
-| `user-stories.md` | Histórias com critério de aceite em Given/When/Then, derivadas dos RF da seção 9 | **Não existe** — exigido por P0 |
+| `user-stories.md` | Histórias com critério de aceite em Given/When/Then | **Não existe** — exigido por P0 |
 | `design/fluxos.md` | Os fluxos principais com estados de erro | **Não existe** — P1 |
