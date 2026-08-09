@@ -1,10 +1,10 @@
-# 21 — Gestão de acesso pelo GERENTE
+# 23 — Gestão de acesso pelo GERENTE
 
 **O que construir:** a razão de o GERENTE existir. Ao fim deste ticket ele cria uma Role de
 relatório, aponta-a para um conjunto de relatórios, cria um Grupo, vincula a role ao grupo e põe
 pessoas dentro — tudo sem abrir chamado para TI. E não consegue, por caminho algum, se promover.
 
-**Bloqueado por:** 09, 14.
+**Bloqueado por:** 10, 15.
 
 **Status:** ready-for-agent
 

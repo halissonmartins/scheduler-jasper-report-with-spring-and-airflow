@@ -1,11 +1,11 @@
-# 32 — E2E: Newman + psql e fluxos críticos no navegador
+# 34 — E2E: Newman + psql e fluxos críticos no navegador
 
 **O que construir:** a verificação de fumaça sobre o sistema montado. Ao fim deste ticket existe um
 percurso automatizado que sobe o ambiente, roda um ciclo, exporta, baixa e confere o estado no banco
 — e um punhado de fluxos de navegador que provam que a aplicação funciona para uma pessoa, não só
 para uma requisição.
 
-**Bloqueado por:** 30, 32.
+**Bloqueado por:** 31, 33.
 
 **Status:** ready-for-agent
 
@@ -15,7 +15,7 @@ para uma requisição.
       substituindo. A regra de negócio já foi afirmada em S1; aqui se verifica a montagem.
 - [ ] **RA-48** — de **1 a 3** fluxos críticos no navegador com Playwright. O navegador **não é uma
       quarta costura de regra** (especificação §5.2): é fumaça.
-- [ ] Os fluxos escolhidos são os do ticket 04: encontrar e baixar um relatório; entrar como RELATOR
+- [ ] Os fluxos escolhidos são os do ticket 05: encontrar e baixar um relatório; entrar como RELATOR
       pendente de vínculo; conceder acesso como GERENTE.
 - [ ] O percurso de backend cobre a costura inteira: ciclo dispara → artefatos aparecem → exportação
       entrega → download é registrado → o banco confirma.

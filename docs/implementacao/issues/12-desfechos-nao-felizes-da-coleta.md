@@ -1,4 +1,4 @@
-# 10 — Desfechos não-felizes da Coleta
+# 12 — Desfechos não-felizes da Coleta
 
 **O que construir:** os outros três finais possíveis de uma apuração. Ao fim deste ticket, um
 relatório lento termina em alerta com artefato utilizável, um relatório que falhou termina em erro
@@ -6,7 +6,7 @@ mesmo tendo sido lento, um relatório travado é abortado no dobro do seu tempo 
 derrubar os vizinhos**, e um dataset grande demais é recusado na Coleta em vez de estourar a memória
 da exportação dias depois.
 
-**Bloqueado por:** 10.
+**Bloqueado por:** 11.
 
 **Status:** ready-for-agent
 

@@ -539,7 +539,7 @@ inexistente.
 > (§5) nem por variável de ambiente, ao contrário da janela de retenção (RNF-12), que é. Mudar o
 > horário é alterar a DAG e publicar; a mudança entra por PR e CI, como a task estática de um produto
 > (`arquitetura-inicial.md`, RA-65 e RA-56; ticket
-> [13](./implementacao/issues/13-dag-reserva-pool-e-callback-de-falha.md)).
+> [14](./implementacao/issues/14-dag-reserva-pool-e-callback-de-falha.md)).
 >
 > Duas consequências que a alteração arrasta, e que existem por isto estar registrado aqui:
 >

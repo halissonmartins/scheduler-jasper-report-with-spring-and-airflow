@@ -1,11 +1,11 @@
-# 15 — Exportação PDF e DOCX, com semáforo de simultaneidade
+# 17 — Exportação PDF e DOCX, com semáforo de simultaneidade
 
 **O que construir:** os dois formatos paginados, saindo do `JasperPrint` serializado — e o teto que
 impede que três pessoas exportando ao mesmo tempo derrubem a API. Ao fim deste ticket o usuário
 recebe o PDF como o relatório foi desenhado, o DOCX editável com a mesma paginação, e a terceira
 requisição simultânea recebe uma recusa imediata em vez de esperar.
 
-**Bloqueado por:** 15.
+**Bloqueado por:** 16.
 
 **Status:** ready-for-agent
 

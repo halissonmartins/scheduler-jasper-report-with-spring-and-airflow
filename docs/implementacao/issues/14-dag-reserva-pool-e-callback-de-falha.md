@@ -1,4 +1,4 @@
-# 12 — DAG: reserva do ciclo, pool, `catchup=False` e callback de falha
+# 14 — DAG: reserva do ciclo, pool, `catchup=False` e callback de falha
 
 **O que construir:** o orquestrador. Ao fim deste ticket o Ciclo dispara sozinho às 03h00, reserva
 uma Execução para cada relatório ativo **antes** de qualquer apuração começar, sobe os produtos em
@@ -9,7 +9,7 @@ Este ticket escreve o **primeiro cenário da costura S3**, a mais cara e a mais 
 nela o que é genuinamente do orquestrador. Nenhuma regra de exportação, catálogo ou acesso encosta
 aqui. As tasks de produto entram como dublê.
 
-**Bloqueado por:** 02, 06.
+**Bloqueado por:** 02, 07.
 
 **Status:** ready-for-agent
 
@@ -30,7 +30,7 @@ aqui. As tasks de produto entram como dublê.
 - [ ] **RF-53** — a DAG **não** aceita data de referência como parâmetro. A data é derivada do
       disparo (RN-54, ADR-0005).
 - [ ] **RA-57** — `execution_timeout` da task no dobro da soma dos tempos estimados do produto, com
-      folga. É interruptor de emergência, não o limite do relatório do ticket 11 — os dois não são o
+      folga. É interruptor de emergência, não o limite do relatório do ticket 12 — os dois não são o
       mesmo prazo implementado duas vezes.
 - [ ] **RF-06** — o callback de falha encerra como `processado com erro` **todas** as execuções
       abertas daquele produto (RN-10, RA-14).

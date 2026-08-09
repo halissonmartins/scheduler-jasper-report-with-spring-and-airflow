@@ -1,14 +1,14 @@
-# 28 — Shell Angular, OIDC e componentes canônicos
+# 30 — Shell Angular, OIDC e componentes canônicos
 
 **O que construir:** a casca da aplicação web e os componentes que todas as telas seguintes vão
 copiar. Ao fim deste ticket dá para entrar, ver o próprio perfil, sair — e existe no repositório
 **uma implementação real** de botão, campo, formulário, tabela e modal, com os estados de
 carregando, vazio, erro e sucesso já resolvidos.
 
-Este ticket materializa o design system do ticket 04. Documento sem implementação de referência não
+Este ticket materializa o design system do ticket 05. Documento sem implementação de referência não
 é seguido: as sessões seguintes copiam o que encontram no código, não o que está escrito.
 
-**Bloqueado por:** 04, 09.
+**Bloqueado por:** 05, 10.
 
 **Status:** ready-for-agent
 
@@ -25,7 +25,7 @@ Este ticket materializa o design system do ticket 04. Documento sem implementaç
 - [ ] **RF-38** — a tela de erro exibe momento, descrição e Correlation ID (RN-40).
 - [ ] **RF-39** — a tela de erro oferece **cópia do erro em JSON** com um clique, para anexar em
       chamado (RA-42).
-- [ ] Acessibilidade do ticket 04 verificada: contraste AA, foco visível, rótulo associado a todo
+- [ ] Acessibilidade do ticket 05 verificada: contraste AA, foco visível, rótulo associado a todo
       campo.
 - [ ] Estrutura de pastas com um exemplo por camada e os cenários em Gherkin no diretório de e2e
       (RA-46).

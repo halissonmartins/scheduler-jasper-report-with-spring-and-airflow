@@ -1,11 +1,11 @@
-# 20 — Catálogo administrável
+# 22 — Catálogo administrável
 
 **O que construir:** o que a aplicação pode mexer no catálogo — que é pouco, de propósito. Ao fim
 deste ticket o ADMINISTRADOR corrige o nome de um produto, ajusta nome, descrição e tempo estimado
 de um relatório, e inativa o que saiu de uso. O que ele **não** consegue é criar, apagar, ou mexer
 em identificador.
 
-**Bloqueado por:** 06, 14.
+**Bloqueado por:** 07, 15.
 
 **Status:** ready-for-agent
 

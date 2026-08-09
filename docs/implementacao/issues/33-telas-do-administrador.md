@@ -1,10 +1,10 @@
-# 31 — Telas do ADMINISTRADOR
+# 33 — Telas do ADMINISTRADOR
 
 **O que construir:** o painel de quem responde pela plataforma. Ao fim deste ticket o ADMINISTRADOR
 ajusta o catálogo, monta o time administrativo, responde a uma pergunta de auditoria sobre quem
 baixou o quê, e refaz uma apuração que saiu errada — informando o motivo.
 
-**Bloqueado por:** 18, 20, 21, 23, 29.
+**Bloqueado por:** 19, 21, 22, 24, 30.
 
 **Status:** ready-for-agent
 

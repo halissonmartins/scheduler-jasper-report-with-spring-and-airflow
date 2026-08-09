@@ -1,11 +1,11 @@
-# 08 — Identidade: realm, perfis, cliente de roles e JWT
+# 10 — Identidade: realm, perfis, cliente de roles e JWT
 
 **O que construir:** entrar e sair da aplicação, com a separação estrutural que sustenta RN-26. Ao
 fim deste ticket existe um ADMINISTRADOR desde a subida do ambiente, um analista consegue se
 autocadastrar sozinho pela página pública, e a API só aceita requisição com token válido — com o
 perfil vindo de um espaço de nomes e as roles de relatório de outro.
 
-**Bloqueado por:** 02, 07.
+**Bloqueado por:** 02, 08.
 
 **Status:** ready-for-agent
 
@@ -23,7 +23,7 @@ perfil vindo de um espaço de nomes e as roles de relatório de outro.
 - [ ] **RA-34** — Traefik expõe seletivamente apenas o console de conta e a página de registro. O
       console administrativo **não** é exposto.
 - [ ] A API é resource server: autorização por JWT entre frontend e API (RA-30), e requisição sem
-      token ou com token inválido é recusada no contrato de erro do ticket 07.
+      token ou com token inválido é recusada no contrato de erro do ticket 08.
 - [ ] **F12** — entrar e sair da aplicação funciona ponta a ponta.
 - [ ] O risco aceito de ADR-0003 está registrado no `ARCHITECTURE.md`: o service account da API
       recebe permissões administrativas grossas porque restringi-lo a um único cliente depende de

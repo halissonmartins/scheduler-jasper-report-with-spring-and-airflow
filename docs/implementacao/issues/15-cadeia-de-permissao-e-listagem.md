@@ -1,4 +1,4 @@
-# 13 — Cadeia de permissão e listagem de relatórios disponíveis
+# 15 — Cadeia de permissão e listagem de relatórios disponíveis
 
 **O que construir:** a primeira coisa que o usuário final vê. Ao fim deste ticket um RELATOR entra,
 navega por data → produto → relatório e enxerga **exclusivamente** o que a sua Cadeia de permissão
@@ -6,7 +6,7 @@ alcança; um ADMINISTRADOR enxerga tudo sem passar por ela; um GERENTE não enxe
 para exportar; e quem se cadastrou ontem e ainda não tem grupo recebe uma listagem vazia com uma
 mensagem que explica o que falta.
 
-**Bloqueado por:** 09, 10.
+**Bloqueado por:** 10, 11.
 
 **Status:** ready-for-agent
 
@@ -31,4 +31,4 @@ mensagem que explica o que falta.
 - [ ] **RA-29** — a listagem **nunca** toca schema transacional. Qualquer dependência da API para um
       schema de produto é defeito, não escolha.
 - [ ] A data de referência aparece rotulada de modo que não se confunda com o dia do movimento
-      (RN-07) — o texto vem dos fluxos do ticket 04.
+      (RN-07) — o texto vem dos fluxos do ticket 05.

@@ -1,4 +1,4 @@
-# 05 — Schema de controle e publicação do catálogo
+# 07 — Schema de controle e publicação do catálogo
 
 **O que construir:** o schema de controle versionado e o catálogo nascendo de onde ele tem que
 nascer — do código. Ao fim deste ticket, subir o módulo processador da Poupança faz aparecerem no
@@ -6,7 +6,7 @@ schema de controle o produto e os seus relatórios, com sigla, código, nome, de
 estimado; e subir um módulo com dois relatórios de mesmo código **não sobe**. É o que as costuras
 S1 e S2 pressupõem existir antes de qualquer outra coisa.
 
-**Bloqueado por:** 01, 02, 05.
+**Bloqueado por:** 01, 02, 06.
 
 **Status:** ready-for-agent
 

@@ -1,4 +1,4 @@
-# 09 — Coleta ponta a ponta de um relatório da Poupança
+# 11 — Coleta ponta a ponta de um relatório da Poupança
 
 **O que construir:** a primeira Coleta que funciona de verdade. Ao fim deste ticket dá para semear
 o schema transacional da Poupança, disparar o job do produto e olhar os dois artefatos no
@@ -8,7 +8,7 @@ origem. Um relatório, um produto, o caminho inteiro.
 Este ticket escreve o **primeiro cenário da costura S2** e carrega o peso de §5.4: é o molde que as
 próximas sessões vão copiar.
 
-**Bloqueado por:** 02, 05, 06.
+**Bloqueado por:** 02, 06, 07.
 
 **Status:** ready-for-agent
 
@@ -16,13 +16,13 @@ próximas sessões vão copiar.
 
 - [ ] O starter do processador (RA-03) concentra o que é comum: leitura paginada, contagem prévia,
       renderização, gravação de artefato e registro de metadados. O módulo do produto traz o JRXML e
-      a consulta definidos no ticket 05, não a mecânica.
+      a consulta definidos no ticket 06, não a mecânica.
 - [ ] **RA-10** — o módulo lê **exclusivamente** o schema transacional do seu próprio produto, numa
       única Janela de leitura por ciclo (RN-44). É a única fronteira de leitura dessas bases.
 - [ ] **RA-64** — a contagem de linhas acontece **antes** de apurar, e o resultado é comparado ao
       teto de RNF-06.
 - [ ] **RA-57** — **todo** statement de leitura declara `queryTimeout`. Sem ele o limite do
-      relatório do ticket 11 não existe, e ninguém percebe: o sistema volta silenciosamente a ter um
+      relatório do ticket 12 não existe, e ninguém percebe: o sistema volta silenciosamente a ter um
       só limite.
 - [ ] **RA-16, RA-17** — a execução bem-sucedida produz **dois arquivos irmãos**: o `JasperPrint`
       serializado e o dataset bruto comprimido com separador `;`. O dataset **não** passa pelo motor

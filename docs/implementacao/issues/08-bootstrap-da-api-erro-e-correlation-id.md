@@ -1,4 +1,4 @@
-# 06 — Bootstrap da API: sondas, contrato de erro e Correlation ID
+# 08 — Bootstrap da API: sondas, contrato de erro e Correlation ID
 
 **O que construir:** a API respondendo pela primeira vez, e respondendo **errado** do jeito certo.
 Ao fim deste ticket as sondas de saúde dizem `UP`, toda falha volta no contrato de erro

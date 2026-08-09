@@ -1,10 +1,10 @@
-# 27 — Métricas de PRD §6 e painéis
+# 29 — Métricas de PRD §6 e painéis
 
 **O que construir:** as seis métricas do PRD medidas de verdade. Ao fim deste ticket dá para abrir
 um painel e responder "o sistema está cumprindo a sua promessa?" sem consulta manual ao banco —
 que é a condição que o guia impõe: métrica de PRD não medida de verdade é métrica que não existe.
 
-**Bloqueado por:** 08, 13, 16.
+**Bloqueado por:** 09, 14, 17.
 
 **Status:** ready-for-agent
 

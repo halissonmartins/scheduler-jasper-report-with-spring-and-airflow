@@ -1,10 +1,10 @@
-# 17 — Histórico de downloads
+# 19 — Histórico de downloads
 
 **O que construir:** a resposta à pergunta de auditoria sem abrir o banco. Ao fim deste ticket o
 ADMINISTRADOR consulta quem levou qual dado e quando, e o registro continua legível mesmo depois de
 o artefato ter sido expurgado, o nome do relatório ter mudado e o relatório ter sido inativado.
 
-**Bloqueado por:** 15.
+**Bloqueado por:** 16.
 
 **Status:** ready-for-agent
 

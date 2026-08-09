@@ -1,4 +1,4 @@
-# 18 — Retenção, expurgo e indisponibilidade explícita
+# 20 — Retenção, expurgo e indisponibilidade explícita
 
 **O que construir:** o fim de vida do artefato, e o que o usuário lê quando pede algo que já não
 existe. Ao fim deste ticket os artefatos somem sozinhos passada a janela de retenção, o sistema
@@ -6,7 +6,7 @@ existe. Ao fim deste ticket os artefatos somem sozinhos passada a janela de rete
 mensagem que diz "expirou por retenção" — nunca um erro genérico que faz parecer que o sistema
 quebrou.
 
-**Bloqueado por:** 15.
+**Bloqueado por:** 16.
 
 **Status:** ready-for-agent
 

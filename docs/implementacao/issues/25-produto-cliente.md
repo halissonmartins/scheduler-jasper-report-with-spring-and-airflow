@@ -1,11 +1,11 @@
-# 23 — Produto CLIENTE
+# 25 — Produto CLIENTE
 
 **O que construir:** o segundo produto, inteiro. Ao fim deste ticket o módulo `CLIENTE` publica o
 seu catálogo ao subir, tem a sua task na DAG, apura os seus **dois** relatórios de exemplo a partir
 do seu próprio schema transacional e entrega os quatro formatos. É o primeiro teste real de que o
 starter do processador é reutilizável e não um molde feito sob medida para a Poupança.
 
-**Bloqueado por:** 05, 13, 17.
+**Bloqueado por:** 06, 14, 18.
 
 **Status:** ready-for-agent
 
@@ -13,11 +13,11 @@ starter do processador é reutilizável e não um molde feito sob medida para a 
 
 - [ ] Schema transacional próprio, com dado de exemplo semeado, lido **exclusivamente** por este
       módulo (RA-10).
-- [ ] **RA-08** — os dois relatórios de exemplo definidos no ticket 05, **com imagens e fontes
+- [ ] **RA-08** — os dois relatórios de exemplo definidos no ticket 06, **com imagens e fontes
       diferentes entre si**: é o que
       exercita na prática os trade-offs da serialização declarados na arquitetura §12.
 - [ ] Cada relatório tem o **seu próprio JRXML** versionado no repositório (RA-07), escrito na
-      convenção de autoria do ticket 17 — cabeçalho de coluna na banda `title`.
+      convenção de autoria do ticket 18 — cabeçalho de coluna na banda `title`.
 - [ ] **RF-44, RF-27, RN-48** — códigos únicos dentro do produto, tempo estimado válido e soma
       dentro do teto, todos verificados na inicialização.
 - [ ] **RA-65** — task estática do produto na DAG, no mesmo PR do módulo. O mono repositório existe

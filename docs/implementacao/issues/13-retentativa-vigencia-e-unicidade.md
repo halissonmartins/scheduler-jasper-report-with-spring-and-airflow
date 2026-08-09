@@ -1,11 +1,11 @@
-# 11 — Retentativa, vigência e unicidade
+# 13 — Retentativa, vigência e unicidade
 
 **O que construir:** o que acontece na segunda vez. Ao fim deste ticket, um relatório que falhou
 ganha uma **nova** Execução de origem `retentativa` — com a anterior preservada e marcada como
 não-vigente — a retentativa relê apenas o que não concluiu, existe um teto para ela, e uma tentativa
 de reapurar um par já concluído com sucesso é recusada sem deixar rastro de falha na métrica.
 
-**Bloqueado por:** 11.
+**Bloqueado por:** 12.
 
 **Status:** ready-for-agent
 
