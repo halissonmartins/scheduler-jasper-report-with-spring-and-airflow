@@ -518,9 +518,9 @@ lugar onde o trabalho é enumerado**, e esta seção não repete a lista.
 A relação de sete "tickets iniciais" que ocupava este espaço precedia o fatiamento e foi absorvida
 por ele: a prototipação descartável e o Swagger de fachada viraram um ticket só; o esqueleto
 compilando com as sondas do Actuator (RA-43) virou dois; os cenários em Gherkin (RA-44 a RA-46)
-nascem com cada costura, começando pelos testes obrigatórios de RA-68; o `CLAUDE.md`, o
-`ARCHITECTURE.md` e as guidelines entraram nas fundações; e a calibração com `k6` é o último ticket
-da fila.
+nascem com cada costura, começando pelos testes obrigatórios de RA-68; o `CLAUDE.md` — o da raiz e
+o de cada módulo —, o `ARCHITECTURE.md` e as guidelines são critérios do ticket de fundações; e a
+calibração com `k6` é o último ticket da fila.
 
 Mantê-la aqui teve custo real: foi por esta seção existir em paralelo que a **prototipação
 descartável e o Swagger sumiram do plano** e só reapareceram duas revisões depois. Duas fontes para
