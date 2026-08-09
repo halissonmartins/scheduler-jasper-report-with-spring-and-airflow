@@ -144,6 +144,13 @@ Explicitamente **não** faz parte desta versão:
 - **Edição da sigla de um produto** e **edição do código de um relatório**.
 - **Agendamento configurável pelo usuário** — a periodicidade da coleta não é editável pela
   aplicação nesta versão.
+- **Parametrização dos tetos de memória** — RNF-05 (tamanho do artefato), RNF-06 (volume do
+  dataset) e RNF-10 (exportações simultâneas) são **valores fixos**, não editáveis pela aplicação
+  nem por configuração de ambiente. A recusa de dataset acima do teto (RN-52) compara contra um
+  número fixo. A marca `PROVISÓRIO` significa que o valor será **substituído por medição** no spike
+  de calibração, e não que alguém possa ajustá-lo em operação. Os três, com o pool de RNF-18,
+  compõem **um único teto de memória**: expô-los como botões independentes permitiria afrouxar um
+  deles e quebrar o conjunto sem que nada detectasse.
 - **Notificação ativa** (e-mail, push) de conclusão ou falha de execução.
 - **Reexportação a partir de artefato expurgado** — passada a janela de retenção, o dado
   daquela data deixa de existir para o sistema.
