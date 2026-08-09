@@ -8,7 +8,7 @@ Este ticket bloqueia os quatro produtos restantes de propósito: a convenção d
 existir e estar testada **antes** de alguém escrever mais oito JRXML, senão ela apodrece em silêncio
 no primeiro relatório escrito por quem não leu o ADR.
 
-**Bloqueado por:** 15.
+**Bloqueado por:** 16.
 
 **Status:** ready-for-agent
 
@@ -26,4 +26,4 @@ no primeiro relatório escrito por quem não leu o ADR.
       Reconstruir o print sem paginação exigiria preencher de novo, o que fere RN-31 e RN-44.
 - [ ] **Teste obrigatório (RA-68)** — **cada** relatório tem cenário que exporta em XLSX e afirma
       que o cabeçalho aparece **exatamente uma vez**. É por relatório, não por módulo.
-- [ ] O teste é parte da definição de pronto de todo relatório novo — os tickets 23 a 26 o herdam.
+- [ ] O teste é parte da definição de pronto de todo relatório novo — os tickets 24 a 27 o herdam.

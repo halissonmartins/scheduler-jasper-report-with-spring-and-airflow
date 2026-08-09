@@ -6,7 +6,7 @@ mesmo tendo sido lento, um relatório travado é abortado no dobro do seu tempo 
 derrubar os vizinhos**, e um dataset grande demais é recusado na Coleta em vez de estourar a memória
 da exportação dias depois.
 
-**Bloqueado por:** 09.
+**Bloqueado por:** 10.
 
 **Status:** ready-for-agent
 

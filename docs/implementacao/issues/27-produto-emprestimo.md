@@ -5,7 +5,7 @@ relatórios de exemplo apurados do seu próprio schema transacional e entregues 
 Ao fim deste ticket o Ciclo apura os **dez** relatórios de RNF-01, e o sistema está completo do lado
 da Coleta.
 
-**Bloqueado por:** 12, 16.
+**Bloqueado por:** 05, 13, 17.
 
 **Status:** ready-for-agent
 
@@ -13,8 +13,9 @@ da Coleta.
 
 - [ ] Schema transacional próprio, com dado de exemplo semeado, lido **exclusivamente** por este
       módulo (RA-10).
-- [ ] **RA-08** — dois relatórios de exemplo, com imagens e fontes diferentes entre si.
-- [ ] Cada relatório com o seu próprio JRXML (RA-07), na convenção de autoria do ticket 16.
+- [ ] **RA-08** — os dois relatórios de exemplo definidos no ticket 05, com imagens e fontes
+      diferentes entre si.
+- [ ] Cada relatório com o seu próprio JRXML (RA-07), na convenção de autoria do ticket 17.
 - [ ] **RF-44, RF-27, RN-48** — códigos únicos dentro do produto, tempo estimado válido e soma
       dentro do teto, verificados na inicialização.
 - [ ] **RA-65** — task estática do produto na DAG, no mesmo PR do módulo.
@@ -23,4 +24,4 @@ da Coleta.
       API.
 - [ ] **Um ciclo completo roda de ponta a ponta com os cinco produtos**: reserva de 10 execuções,
       três ondas de pool 2, dez artefatos gravados e dez linhas de metadados. É a primeira vez que a
-      janela de RNF-04 é observada de verdade — o número medido entra no ticket 33.
+      janela de RNF-04 é observada de verdade — o número medido entra no ticket 34.

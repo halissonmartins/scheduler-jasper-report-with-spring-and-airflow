@@ -6,7 +6,7 @@ existe. Ao fim deste ticket os artefatos somem sozinhos passada a janela de rete
 mensagem que diz "expirou por retenção" — nunca um erro genérico que faz parecer que o sistema
 quebrou.
 
-**Bloqueado por:** 14.
+**Bloqueado por:** 15.
 
 **Status:** ready-for-agent
 

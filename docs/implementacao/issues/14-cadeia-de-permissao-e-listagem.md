@@ -6,7 +6,7 @@ alcança; um ADMINISTRADOR enxerga tudo sem passar por ela; um GERENTE não enxe
 para exportar; e quem se cadastrou ontem e ainda não tem grupo recebe uma listagem vazia com uma
 mensagem que explica o que falta.
 
-**Bloqueado por:** 08, 09.
+**Bloqueado por:** 09, 10.
 
 **Status:** ready-for-agent
 

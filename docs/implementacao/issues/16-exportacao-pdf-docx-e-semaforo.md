@@ -5,7 +5,7 @@ impede que três pessoas exportando ao mesmo tempo derrubem a API. Ao fim deste 
 recebe o PDF como o relatório foi desenhado, o DOCX editável com a mesma paginação, e a terceira
 requisição simultânea recebe uma recusa imediata em vez de esperar.
 
-**Bloqueado por:** 14.
+**Bloqueado por:** 15.
 
 **Status:** ready-for-agent
 

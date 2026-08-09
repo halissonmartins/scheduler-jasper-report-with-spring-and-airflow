@@ -4,7 +4,7 @@
 um painel e responder "o sistema está cumprindo a sua promessa?" sem consulta manual ao banco —
 que é a condição que o guia impõe: métrica de PRD não medida de verdade é métrica que não existe.
 
-**Bloqueado por:** 07, 12, 15.
+**Bloqueado por:** 08, 13, 16.
 
 **Status:** ready-for-agent
 

@@ -6,7 +6,7 @@ schema de controle o produto e os seus relatórios, com sigla, código, nome, de
 estimado; e subir um módulo com dois relatórios de mesmo código **não sobe**. É o que as costuras
 S1 e S2 pressupõem existir antes de qualquer outra coisa.
 
-**Bloqueado por:** 01, 02.
+**Bloqueado por:** 01, 02, 05.
 
 **Status:** ready-for-agent
 

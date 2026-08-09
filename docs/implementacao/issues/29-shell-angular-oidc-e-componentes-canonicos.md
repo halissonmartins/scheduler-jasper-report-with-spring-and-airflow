@@ -8,7 +8,7 @@ carregando, vazio, erro e sucesso já resolvidos.
 Este ticket materializa o design system do ticket 04. Documento sem implementação de referência não
 é seguido: as sessões seguintes copiam o que encontram no código, não o que está escrito.
 
-**Bloqueado por:** 04, 08.
+**Bloqueado por:** 04, 09.
 
 **Status:** ready-for-agent
 

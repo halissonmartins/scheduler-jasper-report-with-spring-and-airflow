@@ -5,7 +5,7 @@ ganha uma **nova** Execução de origem `retentativa` — com a anterior preserv
 não-vigente — a retentativa relê apenas o que não concluiu, existe um teto para ela, e uma tentativa
 de reapurar um par já concluído com sucesso é recusada sem deixar rastro de falha na métrica.
 
-**Bloqueado por:** 10.
+**Bloqueado por:** 11.
 
 **Status:** ready-for-agent
 

@@ -5,7 +5,7 @@ percurso automatizado que sobe o ambiente, roda um ciclo, exporta, baixa e confe
 — e um punhado de fluxos de navegador que provam que a aplicação funciona para uma pessoa, não só
 para uma requisição.
 
-**Bloqueado por:** 29, 31.
+**Bloqueado por:** 30, 32.
 
 **Status:** ready-for-agent
 

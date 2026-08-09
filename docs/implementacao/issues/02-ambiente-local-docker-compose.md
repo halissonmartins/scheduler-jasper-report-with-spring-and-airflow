@@ -18,7 +18,7 @@ verificá-la.
 - [ ] **Toda** a pilha executa em `America/Sao_Paulo` (RA-52, RNF-14) — é o fuso em que a data de
       referência é resolvida, e um contêiner em UTC carimbaria a data errada.
 - [ ] As imagens têm **tag fixada**, nunca `latest`: o comportamento do expurgo depende da versão
-      (RA-21) e um contêiner que muda sozinho quebra o ticket 18 sem aviso.
+      (RA-21) e um contêiner que muda sozinho quebra o ticket 19 sem aviso.
 - [ ] Toda variável de ambiente aparece no `.env.example`, com valor de exemplo e sem segredo real.
 - [ ] O Testcontainers dos módulos Java levanta o mesmo conjunto, com as mesmas versões — o
       ambiente de teste espelha o Compose, não diverge dele.

@@ -5,7 +5,7 @@ deste ticket o ADMINISTRADOR corrige o nome de um produto, ajusta nome, descriç
 de um relatório, e inativa o que saiu de uso. O que ele **não** consegue é criar, apagar, ou mexer
 em identificador.
 
-**Bloqueado por:** 05, 13.
+**Bloqueado por:** 06, 14.
 
 **Status:** ready-for-agent
 

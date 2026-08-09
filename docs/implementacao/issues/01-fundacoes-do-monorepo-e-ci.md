@@ -4,7 +4,7 @@
 limpo numa máquina nova instala, compila, testa e passa no CI com três comandos, e todo módulo
 declarado em RA-02 a RA-06 existe como esqueleto que compila — biblioteca comum, starter do
 processador, os cinco processadores, a API e o frontend. Nada faz nada ainda; o que este ticket
-entrega é o chão em que os outros 32 pisam.
+entrega é o chão em que os outros 33 pisam.
 
 **Bloqueado por:** nada — pode começar imediatamente.
 

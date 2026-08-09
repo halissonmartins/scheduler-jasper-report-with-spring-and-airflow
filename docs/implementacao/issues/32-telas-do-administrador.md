@@ -4,7 +4,7 @@
 ajusta o catálogo, monta o time administrativo, responde a uma pergunta de auditoria sobre quem
 baixou o quê, e refaz uma apuração que saiu errada — informando o motivo.
 
-**Bloqueado por:** 17, 19, 20, 22, 28.
+**Bloqueado por:** 18, 20, 21, 23, 29.
 
 **Status:** ready-for-agent
 

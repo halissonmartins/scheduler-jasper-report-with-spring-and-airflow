@@ -4,7 +4,7 @@
 monta uma Role de relatório, aponta-a para os relatórios que ela alcança, cria um Grupo, vincula os
 dois e põe pessoas dentro — vendo, em cada passo, o efeito da concessão.
 
-**Bloqueado por:** 21, 28.
+**Bloqueado por:** 22, 29.
 
 **Status:** ready-for-agent
 
@@ -21,4 +21,4 @@ dois e põe pessoas dentro — vendo, em cada passo, o efeito da concessão.
       afirmada por cenário, não presumida.
 - [ ] **RF-34** — não existe na interface controle algum que atribua Perfil. O GERENTE opera sobre
       Roles de relatório, e Perfil é outro tipo de objeto (RN-26, ADR-0003).
-- [ ] Tudo pelos componentes canônicos e tokens do ticket 28.
+- [ ] Tudo pelos componentes canônicos e tokens do ticket 29.

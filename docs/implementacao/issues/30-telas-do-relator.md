@@ -5,7 +5,7 @@ navega por data → produto → relatório, escolhe o formato e recebe o arquivo
 entende **por quê** em três situações diferentes: o dado expirou, a apuração daquele dia não deu
 certo, ou o sistema está ocupado demais neste instante.
 
-**Bloqueado por:** 16, 18, 28.
+**Bloqueado por:** 17, 19, 29.
 
 **Status:** ready-for-agent
 
@@ -26,6 +26,6 @@ certo, ou o sistema está ocupado demais neste instante.
       (RN-42) — não a mesma da retenção.
 - [ ] **RF-48** — recusa por limite de simultaneidade indica **repetir mais tarde** (RN-53). Três
       causas, três mensagens, nenhuma delas genérica.
-- [ ] Os estados de carregando, vazio e erro vêm dos componentes canônicos do ticket 28, não são
+- [ ] Os estados de carregando, vazio e erro vêm dos componentes canônicos do ticket 29, não são
       reinventados aqui.
 - [ ] Nenhuma tela aceita data de referência como entrada (RF-53).

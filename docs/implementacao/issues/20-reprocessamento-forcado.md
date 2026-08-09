@@ -5,7 +5,7 @@ ticket o ADMINISTRADOR informa um motivo, a API captura solicitante, motivo e Co
 dispara o orquestrador; a execução anterior é invalidada **e preservada**, ligada a esse registro; e
 os artefatos são sobrescritos, de modo que a exportação passa a entregar o dado corrigido.
 
-**Bloqueado por:** 11, 12, 13.
+**Bloqueado por:** 12, 13, 14.
 
 **Status:** ready-for-agent
 
@@ -23,6 +23,6 @@ os artefatos são sobrescritos, de modo que a exportação passa a entregar o da
 - [ ] **RN-20, ADR-0005** — opera **somente sobre a data de referência corrente**. Não há caminho
       algum de apuração retroativa.
 - [ ] O evento de auditoria registra solicitante, motivo, momento e Correlation ID (RN-21), e é
-      distinguível da recusa de RN-18 do ticket 11.
+      distinguível da recusa de RN-18 do ticket 12.
 - [ ] Um cenário exporta antes e depois e afirma que o conteúdo entregue mudou — é o que prova que
       "sobrescreve" aconteceu de fato.

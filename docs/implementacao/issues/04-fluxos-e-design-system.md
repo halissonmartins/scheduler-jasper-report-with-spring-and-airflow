@@ -3,7 +3,7 @@
 **O que construir:** os dois artefatos do eixo de Produto/Design que o guia trata como
 **pré-requisito de E3** e que a especificação §6 registra como inexistentes. Ao fim deste ticket
 existe um percurso escrito dos fluxos críticos com os seus estados de erro, e uma linguagem visual
-fixada em tokens — antes que a primeira tela a improvise. Sem ele, o ticket 28 nasce inventando
+fixada em tokens — antes que a primeira tela a improvise. Sem ele, o ticket 29 nasce inventando
 espaçamento e cor, e a inconsistência só aparece na vigésima tela.
 
 **Bloqueado por:** nada — pode começar imediatamente.

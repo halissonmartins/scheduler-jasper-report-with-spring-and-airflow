@@ -5,7 +5,7 @@ Ao fim deste ticket o ADMINISTRADOR monta e desmonta o quadro de ADMINISTRADOR e
 perfis removem um RELATOR que saiu da área, e qualquer usuário troca ou recupera a própria senha sem
 depender de ninguém.
 
-**Bloqueado por:** 08, 13.
+**Bloqueado por:** 09, 14.
 
 **Status:** ready-for-agent
 
@@ -17,7 +17,7 @@ depender de ninguém.
 - [ ] **RF-37** — qualquer usuário, de qualquer perfil, troca a própria senha (RN-29).
 - [ ] **RF-37, segunda metade** — recuperação de senha por e-mail, entregue pelo SMTP local do
       ambiente (RA-35). Um cenário afirma a chegada da mensagem, não só o disparo.
-- [ ] A troca de senha usa o console de conta exposto seletivamente no ticket 08 (RA-34) — o console
+- [ ] A troca de senha usa o console de conta exposto seletivamente no ticket 09 (RA-34) — o console
       administrativo continua fora do alcance público.
 - [ ] Um usuário tem **exatamente um perfil**, e o conjunto de perfis continua fechado e definido em
       código: nada aqui cria perfil novo.

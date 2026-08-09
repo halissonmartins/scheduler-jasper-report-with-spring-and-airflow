@@ -5,7 +5,7 @@ formato que **não** passa pelo motor de relatório — entrega o caminho de exp
 (permissão, estado da execução vigente, leitura do artefato, resposta síncrona, registro do
 download) sem depender de nada do Jasper.
 
-**Bloqueado por:** 13.
+**Bloqueado por:** 14.
 
 **Status:** ready-for-agent
 

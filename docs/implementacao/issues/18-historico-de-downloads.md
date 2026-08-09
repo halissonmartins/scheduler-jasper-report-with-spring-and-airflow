@@ -4,7 +4,7 @@
 ADMINISTRADOR consulta quem levou qual dado e quando, e o registro continua legível mesmo depois de
 o artefato ter sido expurgado, o nome do relatório ter mudado e o relatório ter sido inativado.
 
-**Bloqueado por:** 14.
+**Bloqueado por:** 15.
 
 **Status:** ready-for-agent
 

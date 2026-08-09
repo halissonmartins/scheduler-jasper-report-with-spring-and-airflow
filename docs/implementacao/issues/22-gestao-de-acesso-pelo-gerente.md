@@ -4,7 +4,7 @@
 relatório, aponta-a para um conjunto de relatórios, cria um Grupo, vincula a role ao grupo e põe
 pessoas dentro — tudo sem abrir chamado para TI. E não consegue, por caminho algum, se promover.
 
-**Bloqueado por:** 08, 13.
+**Bloqueado por:** 09, 14.
 
 **Status:** ready-for-agent
 
