@@ -34,11 +34,16 @@ invenção entra como fato consumado em toda a cadeia a jusante, a começar pelo
 - [ ] Volume semeável **abaixo do teto de RNF-06** no caminho feliz, e um caminho semeável **acima**
       dele para o cenário de recusa do ticket 11 (RF-49). Sem um dataset grande de propósito, aquele
       critério não tem como ser exercido.
-- [ ] **Distribuição das características de risco**, com o mapa escrito de qual relatório cobre qual:
-      RA-08 exige imagens e fontes diferentes **dentro de cada par**, e as armadilhas de serialização
-      da arquitetura §12 — `serialVersionUID`, imagens embutidas, fontes **não** embutidas e
-      **renderers serializados** — ficam cobertas por ao menos um relatório cada. A dos renderers não
-      é coberta por nenhuma regra existente e é a que ninguém escolheria espontaneamente.
+- [ ] **RA-08, distribuição das características de risco**, com o mapa escrito de qual relatório
+      cobre qual. Duas exigências, com alcances diferentes:
+      - **por par** — os dois relatórios de um mesmo módulo têm imagens e fontes diferentes entre
+        si. É o que exercita o risco de as fontes **não** irem embutidas no artefato renderizado;
+      - **no conjunto dos dez** — ao menos um carrega elemento que produz renderer serializado
+        (barcode ou equivalente), e o jar correspondente entra no classpath da API que desserializa.
+
+      Só estes dois dos quatro riscos da arquitetura §12 são propriedade do **conteúdo** de um
+      relatório. `serialVersionUID` e a confiança em desserializar origem conhecida decorrem do mono
+      repositório (RA-01) e não se pedem a um relatório de exemplo.
 - [ ] Um par com **um relatório notoriamente mais lento que o outro**: o ticket 11 precisa de "um
       lento e um são" para provar que abortar um não derruba o vizinho (RF-05).
 - [ ] **Nenhum JRXML é escrito neste ticket.** A convenção de autoria é do ticket 17, e escrever

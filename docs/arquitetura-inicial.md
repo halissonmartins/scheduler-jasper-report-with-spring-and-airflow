@@ -68,7 +68,16 @@ flowchart LR
 - **RA-07** — Cada relatório tem o **seu próprio JRXML**, versionado no repositório e associado ao
   módulo processador do seu produto.
 - **RA-08** — Cada módulo processador traz **dois relatórios de exemplo**, com imagens e fontes
-  diferentes entre si — exercitam na prática os riscos declarados na seção 12.
+  diferentes entre si, e **ao menos um relatório do conjunto** carrega um elemento que produz
+  renderer serializado (barcode ou equivalente) — exercitam na prática os riscos declarados na
+  seção 12.
+
+  As duas exigências têm alcances diferentes de propósito. A de imagens e fontes é **por par**,
+  porque compara os dois relatórios de um módulo entre si. A do renderer é **do conjunto dos dez**:
+  um único basta para o jar correspondente entrar no classpath da API que desserializa, e cinco
+  seriam o mesmo teste repetido. Sem ela, o quarto risco da seção 12 — `ClassNotFoundException` no
+  renderer — continuaria declarado e nunca exercido, porque nenhum outro critério do projeto obriga
+  um relatório a ter barcode.
 
 ---
 
