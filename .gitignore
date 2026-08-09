@@ -57,3 +57,6 @@ replay_pid*
 
 # Claude Code - configuracao pessoal (nao versionar)
 .claude/settings.local.json
+
+# Superpowers - companion visual do brainstorming (nao versionar)
+.superpowers/
