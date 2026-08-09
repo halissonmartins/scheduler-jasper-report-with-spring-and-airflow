@@ -417,7 +417,10 @@ S3**, provido por MinIO *(RA-18)*. O ambiente local inteiro sobe por **Docker Co
 dependências reais** — banco, identidade, repositório, orquestrador, ingress, SMTP e a pilha de
 telemetria *(RA-51)* — e é esse mesmo conjunto que as costuras de §5 levantam em contêiner. Cada
 relatório traz o **seu próprio JRXML**, versionado no repositório e associado ao módulo processador
-do seu produto *(RA-07)*, e cada módulo processador traz dois relatórios de exemplo *(RA-08)*.
+do seu produto *(RA-07)*, e cada módulo processador traz dois relatórios de exemplo com imagens e
+fontes diferentes entre si; no conjunto dos dez, ao menos um carrega elemento que produz renderer
+serializado, para que a armadilha do `ClassNotFoundException` da §12 seja exercida e não apenas
+declarada *(RA-08)*.
 
 ### 4.2 Schema de controle
 
@@ -621,7 +624,9 @@ reprovar contra um número que ninguém mediu é transformar chute em portão.
 **De produto** *(PRD §5)*: cancelamento de execução em andamento; apuração retroativa; criação e
 remoção de produto e de relatório pela aplicação; MFA; rotação obrigatória da senha inicial do
 ADMINISTRADOR; verificação de e-mail obrigatória no autocadastro; moderação do autocadastro e grupo
-padrão; edição de sigla e de código; agendamento configurável pelo usuário; notificação ativa de
+padrão; edição de sigla e de código; agendamento configurável pelo usuário; **parametrização dos
+tetos de memória** — RNF-05, RNF-06 e RNF-10 são valores fixos, e `PROVISÓRIO` significa que serão
+substituídos por medição, não que alguém possa ajustá-los em operação; notificação ativa de
 conclusão ou falha; reexportação a partir de artefato expurgado.
 
 **De engenharia** *(arquitetura, Fora de escopo)*: Kubernetes; classificação de dados, mascaramento

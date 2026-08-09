@@ -479,14 +479,18 @@ reavaliados.**
 
 ## 14. Pendentes de definição
 
-**Spikes — bloqueiam implementação, não desenho**
+**Spikes — medem, e não bloqueiam**
 
 - **Calibração dos limites** de PRD §10 com `k6`: tamanho real do `.jrprint` desserializado,
   latência de exportação por formato e teto real de simultaneidade. Substitui os `PROVISÓRIO`.
+  **Não bloqueia implementação alguma:** enquanto não rodar, os números marcados `PROVISÓRIO` são
+  alvo de calibração e **não** critério de reprovação de PR — reprovar contra um número que ninguém
+  mediu é transformar chute em portão (`especificacao.md` §5.5).
 - **Confirmar o comportamento de RA-21 na tag de imagem que o Compose fixar.** O achado do código é
   do branch `master`; o contrato de eventos é estável há anos, mas a verificação custa poucos
   minutos: assinar `--event delete`, apagar um objeto manualmente e observar o webhook. Não é mais
-  uma incógnita de desenho — é conferência de versão.
+  uma incógnita de desenho — é conferência de versão, e roda dentro do próprio ticket que configura
+  o expurgo.
 
 **Desenho ainda aberto**
 
@@ -505,21 +509,22 @@ do MinIO**.
 
 ---
 
-## 15. Tickets iniciais do projeto
+## 15. Onde o trabalho está enumerado
 
-1. **Prototipação descartável** usando somente HTML, CSS e JavaScript, cobrindo o drop-down de
-   relatórios disponíveis por `dd/MM/yyyy` → nome do produto → código do relatório, a vinculação
-   das roles de relatório aos grupos e a vinculação dos usuários aos grupos.
-2. **Swagger descartável**, depois substituído pelo SpringDoc OpenAPI.
-3. **Módulos compilando** com esqueleto básico, e os endpoints do Actuator `liveness` e `readiness`
-   respondendo `UP` no módulo API REST (RA-43).
-4. **Criar os cenários em Gherkin** (RA-44 a RA-46), começando pelos testes obrigatórios de RA-68.
-5. **Criar os arquivos `CLAUDE.md` e `ARCHITECTURE.md`** no projeto e dentro de cada módulo,
-   carregando os invariantes desta revisão: `catchup=False`, `queryTimeout`, convenção de autoria
-   do JRXML, quem escreve no schema de controle, teto por produto e semáforo de exportação.
-6. **Calibração dos limites de PRD §10 com `k6`** (seção 14) — é o único spike que ainda bloqueia.
-   Ao configurar o expurgo, assinar **`--event delete`** e não `--event ilm` (RA-21).
-7. **Criar as guidelines do projeto.**
+O MVP está fatiado em [`implementacao/README.md`](./implementacao/README.md) — tickets com
+bloqueadores declarados, derivados de [`especificacao.md`](./especificacao.md). **Aquele é o único
+lugar onde o trabalho é enumerado**, e esta seção não repete a lista.
+
+A relação de sete "tickets iniciais" que ocupava este espaço precedia o fatiamento e foi absorvida
+por ele: a prototipação descartável e o Swagger de fachada viraram um ticket só; o esqueleto
+compilando com as sondas do Actuator (RA-43) virou dois; os cenários em Gherkin (RA-44 a RA-46)
+nascem com cada costura, começando pelos testes obrigatórios de RA-68; o `CLAUDE.md`, o
+`ARCHITECTURE.md` e as guidelines entraram nas fundações; e a calibração com `k6` é o último ticket
+da fila.
+
+Mantê-la aqui teve custo real: foi por esta seção existir em paralelo que a **prototipação
+descartável e o Swagger sumiram do plano** e só reapareceram duas revisões depois. Duas fontes para
+a mesma lista divergem — esta divergiu.
 
 ---
 

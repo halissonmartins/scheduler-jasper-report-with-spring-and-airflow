@@ -1,8 +1,9 @@
 # 04 — Artefatos descartáveis: protótipo dos fluxos e Swagger
 
-**O que construir:** os **dois artefatos descartáveis** que a arquitetura §15 pedia como primeiro e
+**O que construir:** os **dois artefatos descartáveis** que a arquitetura pedia como primeiro e
 segundo tickets do projeto e que o fatiamento em tracer bullets perdeu — o protótipo navegável da
-interface e o Swagger de fachada da API.
+interface e o Swagger de fachada da API. Este ticket é o dono deles: a lista antiga da arquitetura
+§15 foi substituída por um ponteiro para este tracker, justamente porque manter as duas divergiu.
 
 O protótipo é HTML, CSS e JavaScript puros — sem framework, sem backend, sem build, com dado de
 mentira embutido no próprio arquivo. Ao fim dele dá para percorrer com o mouse os dois fluxos que
@@ -25,7 +26,7 @@ contrato mostra o que a tela pode pedir. Fazer os dois no mesmo ticket é o que 
 
 **Critérios de aceitação — protótipo**
 
-- [ ] **Somente HTML, CSS e JavaScript** (arquitetura §15, item 1). Sem framework, sem npm, sem
+- [ ] **Somente HTML, CSS e JavaScript.** Sem framework, sem npm, sem
       backend: abre com um duplo clique. Precisar de build é o primeiro sinal de que o protótipo está
       virando produto.
 - [ ] **Fluxo 1, encontrar um relatório** — o drop-down encadeado data (`dd/MM/yyyy`) → nome do
@@ -55,7 +56,7 @@ contrato mostra o que a tela pode pedir. Fazer os dois no mesmo ticket é o que 
 
 **Critérios de aceitação — Swagger descartável**
 
-- [ ] **Swagger de fachada** (arquitetura §15, item 2), escrito à mão e **sem implementação atrás**.
+- [ ] **Swagger de fachada**, escrito à mão e **sem implementação atrás**.
       Cobre os endpoints que os dois fluxos do protótipo exigem: a listagem navegável, a exportação
       por formato e a vinculação de roles a relatórios, de roles a grupos e de usuários a grupos.
 - [ ] **O contrato de erro de RA-41 já aparece aqui**, com os três campos de RN-40: momento do erro
