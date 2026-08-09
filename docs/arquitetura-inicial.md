@@ -2,8 +2,7 @@
 
 > Documento do eixo **Engenharia** (E0/E1 do `guias/guia-app-web.md`). Descreve **como** o
 > sistema é construído — stack, módulos, formatos de arquivo, orquestração e infraestrutura.
-> O **o quê** e o **porquê** vivem em [`prd.md`](./prd.md); os termos, em
-> [`glossario.md`](./glossario.md).
+> O **o quê** e o **porquê** vivem em [`prd.md`](./prd.md).
 
 > **Os identificadores são permanentes.** Um `RA-NN` nunca é renumerado nem reaproveitado:
 > decisão nova recebe o próximo número livre, ainda que pertença a uma seção anterior; decisão
@@ -509,25 +508,6 @@ do MinIO**.
 
 ---
 
-## 15. Onde o trabalho está enumerado
-
-O MVP está fatiado em [`implementacao/README.md`](./implementacao/README.md) — tickets com
-bloqueadores declarados, derivados de [`especificacao.md`](./especificacao.md). **Aquele é o único
-lugar onde o trabalho é enumerado**, e esta seção não repete a lista.
-
-A relação de sete "tickets iniciais" que ocupava este espaço precedia o fatiamento e foi absorvida
-por ele: a prototipação descartável e o Swagger de fachada viraram um ticket só; o esqueleto
-compilando com as sondas do Actuator (RA-43) virou dois; os cenários em Gherkin (RA-44 a RA-46)
-nascem com cada costura, começando pelos testes obrigatórios de RA-68; o `CLAUDE.md` — o da raiz e
-o de cada módulo —, o `ARCHITECTURE.md` e as guidelines são critérios do ticket de fundações; e a
-calibração com `k6` é o último ticket da fila.
-
-Mantê-la aqui teve custo real: foi por esta seção existir em paralelo que a **prototipação
-descartável e o Swagger sumiram do plano** e só reapareceram duas revisões depois. Duas fontes para
-a mesma lista divergem — esta divergiu.
-
----
-
 ## Fora de escopo
 
 Exclusões de natureza técnica. As de produto estão em [`prd.md`](./prd.md#5-fora-de-escopo).
@@ -541,7 +521,7 @@ Exclusões de natureza técnica. As de produto estão em [`prd.md`](./prd.md#5-f
 
 ---
 
-## 16. Documentos relacionados
+## 15. Documentos relacionados
 
 | Documento | Papel | Estado |
 |---|---|---|

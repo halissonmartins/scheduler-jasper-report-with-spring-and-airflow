@@ -3,8 +3,6 @@
 > Documento do eixo **Produto** (P0 do `guias/guia-app-web.md`). Descreve **o que** o
 > sistema faz e **por quê**. O **como** — stack, módulos, formatos de arquivo,
 > orquestração e infraestrutura — vive em [`arquitetura-inicial.md`](./arquitetura-inicial.md).
-> Os termos do domínio são definidos uma única vez em [`glossario.md`](./glossario.md) e
-> **não** são redefinidos aqui.
 
 ---
 
@@ -198,9 +196,6 @@ medida de verdade é métrica que não existe (guia, P3).
 ---
 
 ## 7. Conceitos do domínio
-
-Definidos em [`glossario.md`](./glossario.md). Este PRD usa aqueles termos e não os
-redefine.
 
 Os que mais mudaram de sentido nesta revisão, e que valem uma leitura antes de seguir:
 **Janela de leitura**, **Data de referência** (o rótulo é o dia da apuração, não o do
@@ -538,8 +533,7 @@ inexistente.
 > orquestrador**, no mono repositório — é código, e não configuração. Não é editável pela aplicação
 > (§5) nem por variável de ambiente, ao contrário da janela de retenção (RNF-12), que é. Mudar o
 > horário é alterar a DAG e publicar; a mudança entra por PR e CI, como a task estática de um produto
-> (`arquitetura-inicial.md`, RA-65 e RA-56; ticket
-> [14](./implementacao/issues/14-dag-reserva-pool-e-callback-de-falha.md)).
+> (`arquitetura-inicial.md`, RA-65 e RA-56.
 >
 > Duas consequências que a alteração arrasta, e que existem por isto estar registrado aqui:
 >
@@ -630,10 +624,5 @@ As nove questões da revisão anterior foram respondidas.
 
 | Documento | Papel | Estado |
 |---|---|---|
-| [`glossario.md`](./glossario.md) | Linguagem ubíqua. Fonte única das definições | Existe |
 | [`arquitetura-inicial.md`](./arquitetura-inicial.md) | Eixo de engenharia: stack, módulos, decisões (`RA-NN`), trade-offs | Existe |
-| [`adr/`](./adr/) | Uma decisão estruturante por arquivo | Existe |
 | [`guias/guia-app-web.md`](./guias/guia-app-web.md) | Método: define os artefatos exigidos em cada fase | Existe |
-| [`especificacao.md`](./especificacao.md) | Spec do MVP: histórias, decisões de implementação e costuras de teste | Existe |
-| `user-stories.md` | Histórias com critério de aceite em Given/When/Then | Coberto por [`especificacao.md`](./especificacao.md) §3, com os `RF-NN` deste PRD como critério; o Given/When/Then vive nos `.feature` (E3) |
-| `design/fluxos.md` | Os fluxos principais com estados de erro | **Não existe** — P1 |
