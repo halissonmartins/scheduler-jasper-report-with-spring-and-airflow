@@ -38,9 +38,9 @@ Trabalhe a **fronteira**: qualquer ticket cujos bloqueadores estejam todos concl
 está em ordem de dependência — os bloqueadores de um ticket sempre têm número menor —, mas **não é
 uma fila**. Vários tickets ficam livres ao mesmo tempo.
 
-Quatro frentes ficam livres cedo e correm em paralelo: os artefatos de arquitetura (03), o protótipo
-descartável (04) e o catálogo seed (06), os três sem bloqueador algum; a Coleta a partir de 07; e a
-plataforma a partir de 08.
+Quatro frentes ficam livres cedo e correm em paralelo: os artefatos de arquitetura (03), os
+artefatos descartáveis (04) e o catálogo seed (06), os três sem bloqueador algum; a Coleta a partir
+de 07; e a plataforma a partir de 08.
 
 Quatro tickets ficam livres de uma vez quando 18 fechar: os produtos 25 a 28 são independentes
 entre si.
@@ -79,7 +79,7 @@ São os que ninguém escreve espontaneamente (RA-68), e cada um tem dono:
 | 01 | [Fundações do mono repositório e CI verde](issues/01-fundacoes-do-monorepo-e-ci.md) | — |
 | 02 | [Ambiente local em Docker Compose](issues/02-ambiente-local-docker-compose.md) | 01 |
 | 03 | [Artefatos de arquitetura faltantes: C4 e riscos](issues/03-c4-e-riscos.md) | — |
-| 04 | [Protótipo descartável dos dois fluxos ambíguos](issues/04-prototipo-descartavel-dos-fluxos-ambiguos.md) | — |
+| 04 | [Artefatos descartáveis: protótipo dos fluxos e Swagger](issues/04-artefatos-descartaveis-prototipo-e-swagger.md) | — |
 | 05 | [Fluxos principais e design system](issues/05-fluxos-e-design-system.md) | 04 |
 | 06 | [Catálogo seed: os dez relatórios de exemplo e seus modelos de dados](issues/06-catalogo-seed-relatorios-e-modelos-de-dados.md) | — |
 
@@ -144,10 +144,12 @@ São os que ninguém escreve espontaneamente (RA-68), e cada um tem dono:
 
 ## Cinco arestas que não são acidente
 
-- **04 bloqueia 05.** O protótipo vem antes dos fluxos escritos e dos tokens, não depois. A ordem
-  do guia é divergir → prototipar → validar → convergir, e o 04 é o único ticket do tracker cujo
-  critério de fechamento é **aceite humano**, não CI verde: percorrer os dois fluxos e explicar cada
-  tela sem hesitar.
+- **04 bloqueia 05, e é o dono dos dois artefatos descartáveis.** O protótipo vem antes dos fluxos
+  escritos e dos tokens, não depois — a ordem do guia é divergir → prototipar → validar → convergir.
+  O Swagger de fachada mora no mesmo ticket porque é a outra metade da mesma pergunta: o protótipo
+  mostra as telas que o contrato alimenta, o contrato mostra o que a tela pode pedir, e separá-los é
+  o que os faz divergir. O 04 é também o único ticket do tracker cujo critério de fechamento é
+  **aceite humano**, não CI verde: percorrer os dois fluxos e explicar cada tela sem hesitar.
 - **05 bloqueia 30.** O guia trata `fluxos.md` e `design-system.md` como pré-requisito de E3, e a
   especificação §6 repete. Sem eles, a primeira tela nasce fora do padrão.
 - **06 bloqueia 07, 11 e 25–28.** Os dez relatórios de exemplo e os modelos de dados eram pendência
