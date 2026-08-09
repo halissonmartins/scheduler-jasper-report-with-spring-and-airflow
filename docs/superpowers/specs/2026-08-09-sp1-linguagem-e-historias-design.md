@@ -152,7 +152,7 @@ humana pedindo mas concentra as regras mais densas do PRD.
 | HS-09 | Nunca aceitar data de referência como entrada | RF-53 |
 | HS-10 | Publicar o catálogo ao iniciar, ou não iniciar | RF-44, RF-27 |
 | HS-11 | Preservar o que foi inativado | RF-54 |
-| HS-12 | Expurgar o artefato vencido | *(sem RF — ver §7)* |
+| HS-12 | Expurgar o artefato vencido | RF-56 *(criado por SP-1 — ver §7)* |
 | HS-13 | Medir a apuração limpa | RF-52 |
 
 **Matriz `RF → história → .feature`**, ao fim do documento. Sai por construção do método
@@ -171,6 +171,19 @@ branch**: `glossario.md`, `adr/` e `especificacao.md`. Correção:
   garantida de divergência.
 
 Acrescentar `user-stories.md` à tabela de documentos relacionados do PRD §13.
+
+### 3.4 Emenda ao PRD: RF-56
+
+SP-1 acrescenta **um único requisito** ao PRD, na tabela de Coleta da §9, fechando a lacuna
+descrita em §7:
+
+| ID | Requisito | Regras |
+|---|---|---|
+| **RF-56** | Artefato que ultrapassa a janela de retenção é expurgado, e aquela data de referência deixa de aparecer na listagem | RN-36, RN-37 |
+
+É a única alteração de conteúdo que SP-1 faz no PRD — o resto do saneamento (§3.3) é
+correção de referência. O identificador segue a regra do próprio PRD: número novo, nunca
+renumeração nem reaproveitamento.
 
 ---
 
@@ -212,8 +225,9 @@ glossário deixa de ser fonte única no primeiro conflito.
 ## 6. Riscos aceitos
 
 - **A derivação pelo PRD não descobre lacunas.** As histórias são agrupamento de RF; um
-  buraco no PRD atravessa intacto para os testes. Decisão deliberada. O caso HS-12 (§7) é a
-  primeira evidência de que existem buracos.
+  buraco no PRD atravessa intacto para os testes. Decisão deliberada. O caso do expurgo (§7)
+  é a evidência de que existem buracos — e ele só apareceu porque o agrupamento por
+  funcionalidade o expôs, não porque houve auditoria. Nada garante que seja o único.
 - **Aceite em uma frase é mais frouxo que Given/When/Then completo.** O checkpoint de P0 do
   guia — *"um teste automatizado conseguiria verificar"* — passa a ser cumprido por
   julgamento, e não por construção. A verificação real só chega em E3, quando os `.feature`
@@ -228,21 +242,27 @@ glossário deixa de ser fonte única no primeiro conflito.
 
 ---
 
-## 7. Questão aberta levantada, não corrigida
+## 7. Lacuna do PRD encontrada e corrigida
 
-**F05 (expurgo automático dos artefatos) não tem requisito funcional no PRD.** Existem
-RN-36 e RN-37 (a janela de retenção e o expurgo), e existe RF-24 (recusar exportação de
-artefato já expurgado), mas **nenhum RF afirma que o expurgo acontece**. HS-12 fica no
-`user-stories.md` sem RF correspondente, com esta nota.
+**F05 (expurgo automático dos artefatos) não tinha requisito funcional no PRD.** Existiam
+RN-36 e RN-37 (a janela de retenção e o expurgo) e existia RF-24 (recusar exportação de
+artefato já expurgado), mas **nenhum RF afirmava que o expurgo acontece**. Sem isso, a
+funcionalidade que apaga dado do usuário seria a única do sistema sem cenário automatizado
+que a verificasse.
 
-Por decisão desta spec, a lacuna é **registrada como questão e não emendada**: o PRD é
-documento do eixo de Produto e a correção é chamada de quem o mantém.
+**Correção:** SP-1 acrescenta o **RF-56** ao PRD (§3.4), e HS-12 passa a rastreá-lo. A
+matriz fica sem exceção e o critério de aceite 1 vale sem ressalva.
+
+**Consequência de método:** SP-1 deixa de ser um sub-projeto que só consome o PRD e passa a
+alterá-lo. É uma alteração de conteúdo, não de forma, e por isso está isolada num requisito
+único e explicitamente listada — qualquer outra lacuna encontrada daqui em diante volta a
+ser questão, não emenda, salvo decisão nova.
 
 ---
 
 ## 8. Critério de aceite
 
-Sete afirmações verificáveis. SP-1 está pronto quando todas forem verdadeiras:
+Oito afirmações verificáveis. SP-1 está pronto quando todas forem verdadeiras:
 
 1. Todo RF ativo do PRD aparece em **exatamente uma** história na matriz.
 2. Os 5 RFs aposentados aparecem marcados como aposentados, sem história.
@@ -252,6 +272,7 @@ Sete afirmações verificáveis. SP-1 está pronto quando todas forem verdadeira
 5. Nenhum termo tem duas definições e nenhum sinônimo tem verbete próprio.
 6. Nenhuma história contém Given/When/Then.
 7. `arquitetura-inicial.md` §15 não lista como existente nenhum documento inexistente.
+8. O PRD contém RF-56, e ele é **o único** requisito acrescentado por SP-1.
 
 Os itens 1 e 2 são conferíveis comparando os `RF-\d+` de `prd.md` com os de
 `user-stories.md`. Nenhum script é versionado agora: **SP-3 transforma essa conferência em
