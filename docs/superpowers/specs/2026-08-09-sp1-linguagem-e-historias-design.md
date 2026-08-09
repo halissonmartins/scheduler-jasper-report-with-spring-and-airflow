@@ -62,7 +62,7 @@ Não há código nesta entrega.
 
 ### 3.1 `docs/glossario.md`
 
-Fonte única dos nomes. Cerca de **38 verbetes**, em seis grupos.
+Fonte única dos nomes. Cerca de **42 verbetes**, em seis grupos.
 
 **Formato do verbete:**
 
