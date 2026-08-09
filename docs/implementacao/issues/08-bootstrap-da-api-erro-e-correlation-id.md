@@ -10,7 +10,7 @@ tamanho: não existe teste algum no repositório de onde copiar padrão (especif
 cenário escrito aqui vira o molde que todas as sessões seguintes vão imitar, e precisa ser citado
 no `ARCHITECTURE.md` como implementação de referência.
 
-**Bloqueado por:** 01, 02.
+**Bloqueado por:** 01, 02, 04.
 
 **Status:** ready-for-agent
 
@@ -24,7 +24,9 @@ no `ARCHITECTURE.md` como implementação de referência.
       não por inspeção visual.
 - [ ] O Correlation ID é **um só do começo ao fim da requisição** (glossário) — não se regenera por
       camada.
-- [ ] SpringDoc OpenAPI publicando o contrato, substituindo o Swagger descartável.
+- [ ] SpringDoc OpenAPI publicando o contrato, **substituindo o Swagger descartável do ticket 04** —
+      que é o que torna o contrato de erro acima uma implementação de um formato já acordado, e não
+      um formato inventado aqui. O Swagger de fachada é aposentado no mesmo PR.
 - [ ] O cenário é escrito em Gherkin, com a linguagem do glossário nos passos, em
       `src/test/resources/feature` (RA-44, RA-45), e roda contra dependências reais em contêiner
       (RA-47).

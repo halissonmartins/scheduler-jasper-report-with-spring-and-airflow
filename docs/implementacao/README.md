@@ -88,7 +88,7 @@ São os que ninguém escreve espontaneamente (RA-68), e cada um tem dono:
 | # | Ticket | Bloqueado por |
 |---|---|---|
 | 07 | [Schema de controle e publicação do catálogo](issues/07-schema-de-controle-e-publicacao-do-catalogo.md) | 01, 02, 06 |
-| 08 | [Bootstrap da API: sondas, contrato de erro e Correlation ID](issues/08-bootstrap-da-api-erro-e-correlation-id.md) | 01, 02 |
+| 08 | [Bootstrap da API: sondas, contrato de erro e Correlation ID](issues/08-bootstrap-da-api-erro-e-correlation-id.md) | 01, 02, 04 |
 | 09 | [Caminho único de telemetria](issues/09-caminho-unico-de-telemetria.md) | 02, 08 |
 | 10 | [Identidade: realm, perfis, cliente de roles e JWT](issues/10-identidade-realm-perfis-e-jwt.md) | 02, 08 |
 
@@ -144,12 +144,16 @@ São os que ninguém escreve espontaneamente (RA-68), e cada um tem dono:
 
 ## Cinco arestas que não são acidente
 
-- **04 bloqueia 05, e é o dono dos dois artefatos descartáveis.** O protótipo vem antes dos fluxos
-  escritos e dos tokens, não depois — a ordem do guia é divergir → prototipar → validar → convergir.
-  O Swagger de fachada mora no mesmo ticket porque é a outra metade da mesma pergunta: o protótipo
-  mostra as telas que o contrato alimenta, o contrato mostra o que a tela pode pedir, e separá-los é
-  o que os faz divergir. O 04 é também o único ticket do tracker cujo critério de fechamento é
-  **aceite humano**, não CI verde: percorrer os dois fluxos e explicar cada tela sem hesitar.
+- **04 bloqueia 05 e 08, e é o dono dos dois artefatos descartáveis.** O protótipo vem antes dos
+  fluxos escritos e dos tokens, não depois — a ordem do guia é divergir → prototipar → validar →
+  convergir. O Swagger de fachada mora no mesmo ticket porque é a outra metade da mesma pergunta: o
+  protótipo mostra as telas que o contrato alimenta, o contrato mostra o que a tela pode pedir, e
+  separá-los é o que os faz divergir.
+
+  A aresta **04 → 08** tem um preço declarado: põe a costura S1 atrás do único portão de **aceite
+  humano** do tracker — percorrer os dois fluxos e explicar cada tela sem hesitar. É deliberado. E2
+  do guia manda desenhar o contrato antes de implementá-lo, e um 08 que inventa o formato do erro
+  transforma o Swagger do 04 em documento morto no dia em que nasce.
 - **05 bloqueia 30.** O guia trata `fluxos.md` e `design-system.md` como pré-requisito de E3, e a
   especificação §6 repete. Sem eles, a primeira tela nasce fora do padrão.
 - **06 bloqueia 07, 11 e 25–28.** Os dez relatórios de exemplo e os modelos de dados eram pendência
