@@ -525,7 +525,23 @@ inexistente.
 | **RNF-17** | Retentativas por relatório em um ciclo | **2** `PROVISÓRIO` |
 | **RNF-18** | Produtos apurados simultaneamente | **2** `PROVISÓRIO` — 4 vCPUs disputados por toda a pilha |
 | **RNF-19** | Teto da soma dos tempos estimados de um produto | **10 min** — deriva de RNF-04 e RNF-18: 5 produtos em ondas de 2 dão 3 ondas de 20 min |
-| **RNF-20** | Horário do ciclo | **03h00**, diário, todos os dias |
+| **RNF-20** | Horário do ciclo | **03h00**, diário, todos os dias — **fixo em código**, ver nota |
+
+> **Onde o horário do ciclo é declarado.** O agendamento de RNF-20 vive na **declaração da DAG do
+> orquestrador**, no mono repositório — é código, e não configuração. Não é editável pela aplicação
+> (§5) nem por variável de ambiente, ao contrário da janela de retenção (RNF-12), que é. Mudar o
+> horário é alterar a DAG e publicar; a mudança entra por PR e CI, como a task estática de um produto
+> (`arquitetura-inicial.md`, RA-65 e RA-56; ticket
+> [12](./implementacao/issues/12-dag-reserva-pool-e-callback-de-falha.md)).
+>
+> Duas consequências que a alteração arrasta, e que existem por isto estar registrado aqui:
+>
+> 1. **O rótulo da data muda de sentido.** A data de referência é o dia do disparo (RN-07), e é a
+>    madrugada que faz o artefato de um dia conter o movimento fechado do anterior. Deslocar o ciclo
+>    para outro período do dia altera esse significado sem que métrica alguma detecte.
+> 2. **A janela de retenção efetiva muda.** O expurgo de RN-36 foi verificado com o ciclo às 03h00
+>    BRT (`arquitetura-inicial.md`, RA-20); outro horário desloca o instante da remoção e exige
+>    refazer a conta que garante que a retenção nunca fica menor que 7 dias.
 
 ---
 
