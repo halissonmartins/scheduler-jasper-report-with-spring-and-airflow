@@ -210,7 +210,7 @@ do glossário de SP-1: *se o conceito existe para o negócio, o nome é pt-BR*; 
 | # | Mudança |
 |---|---|
 | 1 | **`RA-69` nova**, fixando a estrutura de §3.3 e apontando ADR-0019. Próximo livre: a sequência vai de 01 a 68, sem buracos |
-| 2 | **Ponteiro `ADR-NNNN`** nas 18 `RA` que ganharam ADR — uma referência por linha, sem reescrever a `RA` |
+| 2 | **Ponteiro `ADR-NNNN`** nas 19 `RA` que ganharam ADR — uma referência ao fim da linha, sem reescrever a `RA`. Com a `RA-69`, que já nasce apontando ADR-0019, são 20 |
 | 3 | **§14** — "Definição dos nomes dos módulos" sai de *Pendentes* e entra em *Resolvidos nesta revisão* |
 | 4 | **§15** — `adr/`, `c4-contexto.md` e `riscos.md` passam a "Existe" |
 
@@ -287,8 +287,11 @@ Nove afirmações. SP-2 está pronto quando todas forem verdadeiras:
 3. **Nenhuma opção listada aparece sem justificativa de rejeição.** Opção sem motivo é decoração:
    dá a impressão de deliberação sem registrar nenhuma.
 4. Os 5 ADRs de reconstrução carregam o rótulo `Reconstruída em SP-2; não registrada à época`.
-5. As 18 `RA` com ADR apontam para ele, e nenhuma `RA` aponta para ADR inexistente.
-6. `riscos.md` tem 14 registros, **todos com sinal de disparo preenchido**.
+5. **20 `RA` apontam para o seu ADR** — 19 existentes mais a nova `RA-69` — e nenhuma `RA` aponta
+   para ADR inexistente. `ADR-0001` é o único sem `RA` correspondente: a escolha de linguagem vive
+   na §11 (Tech stack), não numa `RA`.
+6. `riscos.md` tem **15 seções `R-NN`**: os 14 riscos vigentes mais `R-15`, o exemplo do padrão
+   "resolvido, não apagado". **Todas com sinal de disparo preenchido.**
 7. `R-12` a `R-14` nomeiam o sub-projeto dono.
 8. `RA-69` existe, e a §14 não lista mais os nomes dos módulos como pendentes.
 9. A §15 lista `adr/`, `c4-contexto.md` e `riscos.md` como existentes — e os três existem.
