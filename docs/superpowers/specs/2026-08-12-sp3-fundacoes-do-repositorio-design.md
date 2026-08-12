@@ -134,7 +134,7 @@ runtime do outro ecossistema só para commitar.
 
 ### 3.4 Ambiente local
 
-**A pilha de `RA-51` são 15 contêineres, não 11:** Graylog arrasta MongoDB e OpenSearch, e o
+**A pilha de `RA-51` são 14 contêineres, não 11:** Graylog arrasta MongoDB e OpenSearch, e o
 Airflow são dois processos.
 
 | Perfil | Contêineres | Imagens |
@@ -304,7 +304,7 @@ Dez afirmações. O checkpoint do guia é a primeira:
 1. **Clone limpo, `make setup && make build`, sem etapa manual.**
 2. `mvn verify` compila os 8 módulos com `-Werror`, sem warning.
 3. `make dev` sobe o núcleo e os 5 contêineres ficam *healthy*.
-4. `make dev-full` sobe os 15 e a máquina sustenta — **medido**, não presumido.
+4. `make dev-full` sobe os 14 e a máquina sustenta — **medido**, não presumido.
 5. `mvn spotless:check` passa.
 6. `gitleaks detect` não acusa nada.
 7. Os 5 `CLAUDE.md` de processador têm bloco comum de hash idêntico.
