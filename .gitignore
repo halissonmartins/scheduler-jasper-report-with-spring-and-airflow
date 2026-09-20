@@ -48,6 +48,11 @@ replay_pid*
 **/.idea
 **/.kilo
 **/.gemini
+**/.agents
+**/.claude
+**/.superpowers
+**/.cursor
+**/.windsurf
 *.iml
 *.xml.orig
 *.java.orig
