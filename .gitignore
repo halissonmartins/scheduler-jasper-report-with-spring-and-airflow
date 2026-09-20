@@ -47,6 +47,8 @@ replay_pid*
 **/bin
 **/.idea
 **/.kilo
+**/.superpowers
+**/.claude
 **/.gemini
 *.iml
 *.xml.orig
